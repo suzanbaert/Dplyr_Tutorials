@@ -4,6 +4,8 @@ author: Suzan Baert
 date: '2018-01-31'
 ---
 
+# Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
+
 Blog link on [https://suzanbaert.netlify.com](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
 
 
