@@ -1,4 +1,4 @@
-Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
+# 1. Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
 
 I went through the entire dplyr documentation for a talk last week about
 pipes, which resulted in a few "aha!" moments. I discovered and

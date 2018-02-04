@@ -1,3 +1,12 @@
+# 2. Transforming your columns into the right shape 
+
+This is a second post in a series of dplyr functions. The first one
+covered basic and advanced ways to select, rename and reorder
+columns, and can be found here.
+
+This second one covers tools to manipulate your columns to get them the
+way you want them.  
+
 -   [**Mutating columns: the basics**](#mutating-columns-the-basics)
 -   [**Mutating several columns at
     once**](#mutating-several-columns-at-once)
@@ -17,12 +26,7 @@
 -   [**Spreading and gathering data**](#spreading-and-gathering-data)
 -   [**Turning data into NA**](#turning-data-into-na)
 
-This is a second post in a series of dplyr functions. The first one
-covered basic and advanced ways to select, rename and reorder
-columns,and can be found here.
-
-This second one covers tools to manipulate your columns to get them the
-way you want them. - content
+<br>
 
 **The data**  
 As per previous blog posts, many of these functions truly shine when you
