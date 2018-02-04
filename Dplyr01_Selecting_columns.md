@@ -1,27 +1,15 @@
----
-title: 'Data Wrangling Part 1: Basic to Advanced Ways to Select Columns'
-author: Suzan Baert
-date: '2018-01-31'
----
-
-# Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
-
-Blog link on [https://suzanbaert.netlify.com](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
-
+Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
 
 I went through the entire dplyr documentation for a talk last week about
 pipes, which resulted in a few "aha!" moments. I discovered and
 re-discovered a few useful functions, which I wanted to collect in a few
-blog posts so I can share them with others. 
-  
-This first post will cover **ordering, naming and selecting columns**. The
+blog posts so I can share them with others.  
+This first post will cover ordering, naming and selecting columns. The
 next post will be about recoding and transforming columns, and after
 that I will move on to row selection. I changed dataset versus the talk
 last week to one that is built-in to R so code can be copy pasted and
 experimented with easily.  
-  
-**Content:**
-  
+
 -   [**Selecting columns**](#selecting-columns)
     -   [**Selecting columns: the
         basics**](#selecting-columns-the-basics)
@@ -39,10 +27,10 @@ experimented with easily.
     -   [**Reformatting all column
         names**](#reformatting-all-column-names)
     -   [**Row names to column**](#row-names-to-column)
+<br> 
 
-
-To note: All code will be presented as part of pipe even though hardly any
-of them are a full pipe. In some cases I added a `glimpse()` statement to allow you to
+All code will be presented as part of pipe even though hardly any
+of them are a full pipe. I did add `glimpse()` statement to allow you to
 see the columns selected in the output tibble without printing all the
 data every time.
 
@@ -92,6 +80,7 @@ appear in the output.
     ## $ sleep_total <dbl> 12.1, 17.0, 14.4, 14.9, 4.0, 14.4, 8.7, 7.0, 10.1,...
     ## $ awake       <dbl> 11.9, 7.0, 9.6, 9.1, 20.0, 9.6, 15.3, 17.0, 13.9, ...
 
+<br>
 
 If you want to add a lot of columns, it can save you some typing to have
 a good look at your data and see whether you can't get to your selection
@@ -102,7 +91,7 @@ To add a chunk of columns use the `start_col:end_col` syntax:
 
     msleep %>%
       select(name:order, sleep_total:sleep_cycle) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 7
@@ -114,13 +103,14 @@ To add a chunk of columns use the `start_col:end_col` syntax:
     ## $ sleep_rem   <dbl> NA, 1.8, 2.4, 2.3, 0.7, 2.2, 1.4, NA, 2.9, NA, 0.6...
     ## $ sleep_cycle <dbl> NA, NA, NA, 0.1333333, 0.6666667, 0.7666667, 0.383...
 
+<br>
 
 An alternative is to **deselect columns** by adding a minus sign in
 front of the column name. You can also deselect chunks of columns.
 
     msleep %>% 
       select(-conservation, -(sleep_total:awake)) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 6
@@ -131,16 +121,17 @@ front of the column name. You can also deselect chunks of columns.
     ## $ brainwt <dbl> NA, 0.01550, NA, 0.00029, 0.42300, NA, NA, NA, 0.07000...
     ## $ bodywt  <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850, 20.490, 0...
 
+<br>
 
 It's even possible to deselect a whole chunk, and then re-add a column
 again.  
-The below sample code deselects the whole chunk from 'name' to 'awake', but
-re-adds the 'conservation', even though it was part of the deselected chunk.
+The below sample code deselects the whole chunk from ID to pledged, but
+re-adds the 'name', even though it was part of the deselected chunk.
 This only works if you re-add it in the same `select()` statement.
 
     msleep %>%
       select(-(name:awake), conservation) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 3
@@ -149,6 +140,34 @@ This only works if you re-add it in the same `select()` statement.
     ## $ conservation <chr> "lc", NA, "nt", "lc", "domesticated", NA, "vu", N...
 
 <br>
+
+There is another option which avoids the continuous retyping of columns
+names: `one_of()`. You can set up column names upfront, and then refer
+to them inside a `select()` statement.
+
+    classification_info <- c("name", "genus", "vore", "order", "conservation")
+    sleep_cols <- c("sleep_total", "sleep_rem", "sleep_cycle")
+    weight_cols <- c("brainwt", "bodywt")
+
+    msleep %>%
+      select(one_of(sleep_cols))
+
+    ## # A tibble: 83 x 3
+    ##    sleep_total sleep_rem sleep_cycle
+    ##          <dbl>     <dbl>       <dbl>
+    ##  1       12.1     NA          NA    
+    ##  2       17.0      1.80       NA    
+    ##  3       14.4      2.40       NA    
+    ##  4       14.9      2.30        0.133
+    ##  5        4.00     0.700       0.667
+    ##  6       14.4      2.20        0.767
+    ##  7        8.70     1.40        0.383
+    ##  8        7.00    NA          NA    
+    ##  9       10.1      2.90        0.333
+    ## 10        3.00    NA          NA    
+    ## # ... with 73 more rows
+
+\`
 
 **Selecting columns based on partial column names**
 ---------------------------------------------------
@@ -160,7 +179,7 @@ columns.
 
     msleep %>%
       select(name, starts_with("sleep")) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 4
@@ -169,11 +188,9 @@ columns.
     ## $ sleep_rem   <dbl> NA, 1.8, 2.4, 2.3, 0.7, 2.2, 1.4, NA, 2.9, NA, 0.6...
     ## $ sleep_cycle <dbl> NA, NA, NA, 0.1333333, 0.6666667, 0.7666667, 0.383...
 
-or
-
     msleep %>%
       select(contains("eep"), ends_with("wt")) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 5
@@ -183,7 +200,7 @@ or
     ## $ brainwt     <dbl> NA, 0.01550, NA, 0.00029, 0.42300, NA, NA, NA, 0.0...
     ## $ bodywt      <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850, 20.49...
 
-<br>
+<br><br>
 
 **Selecting columns based on regex**
 ------------------------------------
@@ -197,14 +214,14 @@ followed by one or more other letters, and "er".
     #selecting based on regex
     msleep %>%
       select(matches("o.+er")) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 2
     ## $ order        <chr> "Carnivora", "Primates", "Rodentia", "Soricomorph...
     ## $ conservation <chr> "lc", NA, "nt", "lc", "domesticated", NA, "vu", N...
 
-<br>
+<br><br>
 
 **Selecting columns by their data type**
 ----------------------------------------
@@ -218,7 +235,7 @@ If you have data columns, you can load the `lubridate` package, and use
 
     msleep %>%
       select_if(is.numeric) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 6
@@ -229,13 +246,14 @@ If you have data columns, you can load the `lubridate` package, and use
     ## $ brainwt     <dbl> NA, 0.01550, NA, 0.00029, 0.42300, NA, NA, NA, 0.0...
     ## $ bodywt      <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850, 20.49...
 
+<br>
 
 You can also select the negation but in this case you will need to add a
 tilde to ensure that you still pass a function to `select_if`.
 
     msleep %>%
       select_if(~!is.numeric(.)) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 5
@@ -245,7 +263,7 @@ tilde to ensure that you still pass a function to `select_if`.
     ## $ order        <chr> "Carnivora", "Primates", "Rodentia", "Soricomorph...
     ## $ conservation <chr> "lc", NA, "nt", "lc", "domesticated", NA, "vu", N...
 
-<br>
+<br><br>
 
 **Selecting columns by logical expressions**
 --------------------------------------------
@@ -262,7 +280,7 @@ add a tilde upfront to turn the statement into a function.
       select_if(is.numeric) %>%
       select_if(~mean(., na.rm=TRUE) > 10)
 
-or shorter:
+<br> or shorter:
 
     msleep %>%
       select_if(~is.numeric(.) & mean(., na.rm=TRUE) > 10)
@@ -282,6 +300,7 @@ or shorter:
     ## 10        3.00 21.0   14.8   
     ## # ... with 73 more rows
 
+<br>
 
 One of the useful functions for `select_if` is `n_distinct()`, which
 counts the amount of distinct values that can be found in a column.  
@@ -308,6 +327,7 @@ a tilde in front.
     ## 10 herbi lc          
     ## # ... with 73 more rows
 
+<br>
 
 ------------------------------------------------------------------------
 
@@ -319,7 +339,7 @@ order in which you select them will determine the final order.
 
     msleep %>%
       select(conservation, sleep_total, name) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 3
@@ -327,6 +347,7 @@ order in which you select them will determine the final order.
     ## $ sleep_total  <dbl> 12.1, 17.0, 14.4, 14.9, 4.0, 14.4, 8.7, 7.0, 10.1...
     ## $ name         <chr> "Cheetah", "Owl monkey", "Mountain beaver", "Grea...
 
+<br>
 
 If you are just moving a few columns to the front, you can use
 `everything()` afterwards which will add all the remaining columns and
@@ -334,7 +355,7 @@ save a lot of typing.
 
     msleep %>%
       select(conservation, sleep_total, everything()) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 11
@@ -350,6 +371,7 @@ save a lot of typing.
     ## $ brainwt      <dbl> NA, 0.01550, NA, 0.00029, 0.42300, NA, NA, NA, 0....
     ## $ bodywt       <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850, 20.4...
 
+<br>
 
 ------------------------------------------------------------------------
 
@@ -366,7 +388,7 @@ the `select` function.
 
     msleep %>%
       select(animal = name, sleep_total, extinction_threat = conservation) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 3
@@ -374,13 +396,14 @@ the `select` function.
     ## $ sleep_total       <dbl> 12.1, 17.0, 14.4, 14.9, 4.0, 14.4, 8.7, 7.0,...
     ## $ extinction_threat <chr> "lc", NA, "nt", "lc", "domesticated", NA, "v...
 
+<br>
 
 If you want to retain all columns and therefore have no `select()`
 statement, you can rename by adding a `rename()` statement.
 
     msleep %>% 
       rename(animal = name, extinction_threat = conservation) %>%
-      glimpse()
+      glimpse
 
     ## Observations: 83
     ## Variables: 11
@@ -396,7 +419,7 @@ statement, you can rename by adding a `rename()` statement.
     ## $ brainwt           <dbl> NA, 0.01550, NA, 0.00029, 0.42300, NA, NA, N...
     ## $ bodywt            <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850,...
 
-<br>
+<br><br>
 
 **Reformatting all column names**
 ---------------------------------
@@ -425,6 +448,7 @@ you could use `tolower()`.
     ## 10 Roe deer Capre~ herbi Artio~ lc       3.00 NA     NA     21.0   9.82e-2
     ## # ... with 73 more rows, and 1 more variable: BODYWT <dbl>
 
+<br>
 
 You can go further than that by creating functions on the fly: if you
 have messy column names coming from excel for instance you can replace
@@ -452,7 +476,7 @@ all white spaces with an underscore.
     ## 10 Roe deer                          3.00     0.0982  
     ## # ... with 73 more rows
 
-<br>
+<br><br>
 
 **Row names to column**
 -----------------------
@@ -461,7 +485,7 @@ Some dataframes have rownames that are not actually a column in itself,
 like the mtcars dataset:
 
      mtcars %>%
-       head()
+       head
 
     ##                    mpg cyl disp  hp drat    wt  qsec vs am gear carb
     ## Mazda RX4         21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
@@ -478,7 +502,7 @@ If you want this column to be an actual column, you can use the
 
      mtcars %>%
        rownames_to_column("car_model") %>%
-       head()
+       head
 
     ##           car_model  mpg cyl disp  hp drat    wt  qsec vs am gear carb
     ## 1         Mazda RX4 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
