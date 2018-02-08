@@ -253,21 +253,22 @@ Obviously you can use any regex inside `mutate_all()` as well. The
 sample code will remove any vowels:
 
     msleep %>%
+      select(name:sleep_total) %>%
       mutate_all(~str_replace_all(., "[aeiou]", ""))
 
-    ## # A tibble: 83 x 11
-    ##    name    genus  vore  order  conse~ sleep~ slee~ slee~ awake brai~ body~
-    ##    <chr>   <chr>  <chr> <chr>  <chr>  <chr>  <chr> <chr> <chr> <chr> <chr>
-    ##  1 Chth    Acnnyx crn   Crnvr  lc     12.1   <NA>  <NA>  11.9  <NA>  50   
-    ##  2 Owl mn~ Ats    mn    Prmts  <NA>   17     1.8   <NA>  7     0.01~ 0.48 
-    ##  3 Mntn b~ Apldnt hrb   Rdnt   nt     14.4   2.4   <NA>  9.6   <NA>  1.35 
-    ##  4 Grtr s~ Blrn   mn    Srcmr~ lc     14.9   2.3   0.13~ 9.1   0.00~ 0.019
-    ##  5 Cw      Bs     hrb   Artdc~ dmstc~ 4      0.7   0.66~ 20    0.423 600  
-    ##  6 Thr-td~ Brdyps hrb   Pls    <NA>   14.4   2.2   0.76~ 9.6   <NA>  3.85 
-    ##  7 Nrthrn~ Cllrh~ crn   Crnvr  v      8.7    1.4   0.38~ 15.3  <NA>  20.49
-    ##  8 Vspr ms Clmys  <NA>  Rdnt   <NA>   7      <NA>  <NA>  17    <NA>  0.045
-    ##  9 Dg      Cns    crn   Crnvr  dmstc~ 10.1   2.9   0.33~ 13.9  0.07  14   
-    ## 10 R dr    Cprls  hrb   Artdc~ lc     3      <NA>  <NA>  21    0.09~ 14.8 
+    ## # A tibble: 83 x 6
+    ##    name               genus   vore  order    conservation sleep_total
+    ##    <chr>              <chr>   <chr> <chr>    <chr>        <chr>      
+    ##  1 Chth               Acnnyx  crn   Crnvr    lc           12.1       
+    ##  2 Owl mnky           Ats     mn    Prmts    <NA>         17         
+    ##  3 Mntn bvr           Apldnt  hrb   Rdnt     nt           14.4       
+    ##  4 Grtr shrt-tld shrw Blrn    mn    Srcmrph  lc           14.9       
+    ##  5 Cw                 Bs      hrb   Artdctyl dmstctd      4          
+    ##  6 Thr-td slth        Brdyps  hrb   Pls      <NA>         14.4       
+    ##  7 Nrthrn fr sl       Cllrhns crn   Crnvr    v            8.7        
+    ##  8 Vspr ms            Clmys   <NA>  Rdnt     <NA>         7          
+    ##  9 Dg                 Cns     crn   Crnvr    dmstctd      10.1       
+    ## 10 R dr               Cprls   hrb   Artdctyl lc           3          
     ## # ... with 73 more rows
 
 ### **Mutate\_if**
@@ -288,22 +289,23 @@ function on the fly by using a tilde: such as
 `mutate_if(is.numeric, ~round(. ,2))`.
 
     msleep %>%
-      mutate_if(is.numeric, round) %>%
-      glimpse()
+      select(name, sleep_total:bodywt) %>%
+      mutate_if(is.numeric, round)
 
-    ## Observations: 83
-    ## Variables: 11
-    ## $ name         <chr> "Cheetah", "Owl monkey", "Mountain beaver", "Grea...
-    ## $ genus        <chr> "Acinonyx", "Aotus", "Aplodontia", "Blarina", "Bo...
-    ## $ vore         <chr> "carni", "omni", "herbi", "omni", "herbi", "herbi...
-    ## $ order        <chr> "Carnivora", "Primates", "Rodentia", "Soricomorph...
-    ## $ conservation <chr> "lc", NA, "nt", "lc", "domesticated", NA, "vu", N...
-    ## $ sleep_total  <dbl> 12, 17, 14, 15, 4, 14, 9, 7, 10, 3, 5, 9, 10, 12,...
-    ## $ sleep_rem    <dbl> NA, 2, 2, 2, 1, 2, 1, NA, 3, NA, 1, 1, 1, 2, 2, 2...
-    ## $ sleep_cycle  <dbl> NA, NA, NA, 0, 1, 1, 0, NA, 0, NA, NA, 0, NA, 0, ...
-    ## $ awake        <dbl> 12, 7, 10, 9, 20, 10, 15, 17, 14, 21, 19, 15, 14,...
-    ## $ brainwt      <dbl> NA, 0, NA, 0, 0, NA, NA, NA, 0, 0, 0, 0, NA, 0, 0...
-    ## $ bodywt       <dbl> 50, 0, 1, 0, 600, 4, 20, 0, 14, 15, 34, 1, 5, 0, ...
+    ## # A tibble: 83 x 7
+    ##    name                       sleep_total sleep~ sleep~ awake brai~ bodywt
+    ##    <chr>                            <dbl>  <dbl>  <dbl> <dbl> <dbl>  <dbl>
+    ##  1 Cheetah                          12.0   NA     NA    12.0     NA  50.0 
+    ##  2 Owl monkey                       17.0    2.00  NA     7.00     0   0   
+    ##  3 Mountain beaver                  14.0    2.00  NA    10.0     NA   1.00
+    ##  4 Greater short-tailed shrew       15.0    2.00   0     9.00     0   0   
+    ##  5 Cow                               4.00   1.00   1.00 20.0      0 600   
+    ##  6 Three-toed sloth                 14.0    2.00   1.00 10.0     NA   4.00
+    ##  7 Northern fur seal                 9.00   1.00   0    15.0     NA  20.0 
+    ##  8 Vesper mouse                      7.00  NA     NA    17.0     NA   0   
+    ##  9 Dog                              10.0    3.00   0    14.0      0  14.0 
+    ## 10 Roe deer                          3.00  NA     NA    21.0      0  15.0 
+    ## # ... with 73 more rows
 
 ### **Mutate\_at to change specifc columns**
 
@@ -315,23 +317,26 @@ The second argument of `mutate_at()` needs to be function, so I have to
 wrap my calculation instructions with a tilde to make a function on the
 fly.
 
+The sample code shows that in this case all `sleep` columns have been
+changed into minutes, but `awake` did not.
+
     msleep %>%
-      select(name, sleep_total:bodywt) %>%
+      select(name, sleep_total:awake) %>%
       mutate_at(vars(contains("sleep")), ~(.*60)) 
 
-    ## # A tibble: 83 x 7
-    ##    name                       sleep_~ sleep~ sleep~ awake  brainwt  bodywt
-    ##    <chr>                        <dbl>  <dbl>  <dbl> <dbl>    <dbl>   <dbl>
-    ##  1 Cheetah                        726   NA    NA    11.9  NA       5.00e+1
-    ##  2 Owl monkey                    1020  108    NA     7.00  1.55e-2 4.80e-1
-    ##  3 Mountain beaver                864  144    NA     9.60 NA       1.35e+0
-    ##  4 Greater short-tailed shrew     894  138     8.00  9.10  2.90e-4 1.90e-2
-    ##  5 Cow                            240   42.0  40.0  20.0   4.23e-1 6.00e+2
-    ##  6 Three-toed sloth               864  132    46.0   9.60 NA       3.85e+0
-    ##  7 Northern fur seal              522   84.0  23.0  15.3  NA       2.05e+1
-    ##  8 Vesper mouse                   420   NA    NA    17.0  NA       4.50e-2
-    ##  9 Dog                            606  174    20.0  13.9   7.00e-2 1.40e+1
-    ## 10 Roe deer                       180   NA    NA    21.0   9.82e-2 1.48e+1
+    ## # A tibble: 83 x 5
+    ##    name                       sleep_total sleep_rem sleep_cycle awake
+    ##    <chr>                            <dbl>     <dbl>       <dbl> <dbl>
+    ##  1 Cheetah                            726      NA         NA    11.9 
+    ##  2 Owl monkey                        1020     108         NA     7.00
+    ##  3 Mountain beaver                    864     144         NA     9.60
+    ##  4 Greater short-tailed shrew         894     138          8.00  9.10
+    ##  5 Cow                                240      42.0       40.0  20.0 
+    ##  6 Three-toed sloth                   864     132         46.0   9.60
+    ##  7 Northern fur seal                  522      84.0       23.0  15.3 
+    ##  8 Vesper mouse                       420      NA         NA    17.0 
+    ##  9 Dog                                606     174         20.0  13.9 
+    ## 10 Roe deer                           180      NA         NA    21.0 
     ## # ... with 73 more rows
 
 <br>
@@ -398,22 +403,22 @@ The sample code will divide the current measure `sleep_total` into a
 discrete "long" or "short" sleeper.
 
     msleep %>%
-      select(name, contains("sleep")) %>%
+      select(name, sleep_total) %>%
       mutate(sleep_time = ifelse(sleep_total > 10, "long", "short")) 
 
-    ## # A tibble: 83 x 5
-    ##    name                       sleep_total sleep_rem sleep_cycle sleep_time
-    ##    <chr>                            <dbl>     <dbl>       <dbl> <chr>     
-    ##  1 Cheetah                          12.1     NA          NA     long      
-    ##  2 Owl monkey                       17.0      1.80       NA     long      
-    ##  3 Mountain beaver                  14.4      2.40       NA     long      
-    ##  4 Greater short-tailed shrew       14.9      2.30        0.133 long      
-    ##  5 Cow                               4.00     0.700       0.667 short     
-    ##  6 Three-toed sloth                 14.4      2.20        0.767 long      
-    ##  7 Northern fur seal                 8.70     1.40        0.383 short     
-    ##  8 Vesper mouse                      7.00    NA          NA     short     
-    ##  9 Dog                              10.1      2.90        0.333 long      
-    ## 10 Roe deer                          3.00    NA          NA     short     
+    ## # A tibble: 83 x 3
+    ##    name                       sleep_total sleep_time
+    ##    <chr>                            <dbl> <chr>     
+    ##  1 Cheetah                          12.1  long      
+    ##  2 Owl monkey                       17.0  long      
+    ##  3 Mountain beaver                  14.4  long      
+    ##  4 Greater short-tailed shrew       14.9  long      
+    ##  5 Cow                               4.00 short     
+    ##  6 Three-toed sloth                 14.4  long      
+    ##  7 Northern fur seal                 8.70 short     
+    ##  8 Vesper mouse                      7.00 short     
+    ##  9 Dog                              10.1  long      
+    ## 10 Roe deer                          3.00 short     
     ## # ... with 73 more rows
 
 <br>
@@ -435,6 +440,7 @@ afterwards, either by using `forcats::fct_relevel()`, or just with a
 a levels vector upfront to avoid cluttering the piple too much.
 
     msleep %>%
+      select(name, sleep_total) %>%
       mutate(sleep_total_discr = case_when(
         sleep_total > 13 ~ "very long",
         sleep_total > 10 ~ "long",
@@ -442,16 +448,22 @@ a levels vector upfront to avoid cluttering the piple too much.
         TRUE ~ "short")) %>%
       mutate(sleep_total_discr = factor(sleep_total_discr, 
                                         levels = c("short", "limited", 
-                                                   "long", "very long"))) %>%
-      count(sleep_total_discr)
+                                                   "long", "very long")))
 
-    ## # A tibble: 4 x 2
-    ##   sleep_total_discr     n
-    ##   <fctr>            <int>
-    ## 1 short                20
-    ## 2 limited              19
-    ## 3 long                 21
-    ## 4 very long            23
+    ## # A tibble: 83 x 3
+    ##    name                       sleep_total sleep_total_discr
+    ##    <chr>                            <dbl> <fctr>           
+    ##  1 Cheetah                          12.1  long             
+    ##  2 Owl monkey                       17.0  very long        
+    ##  3 Mountain beaver                  14.4  very long        
+    ##  4 Greater short-tailed shrew       14.9  very long        
+    ##  5 Cow                               4.00 short            
+    ##  6 Three-toed sloth                 14.4  very long        
+    ##  7 Northern fur seal                 8.70 limited          
+    ##  8 Vesper mouse                      7.00 short            
+    ##  9 Dog                              10.1  long             
+    ## 10 Roe deer                          3.00 short            
+    ## # ... with 73 more rows
 
 The `case_when()` function does not only work inside a column, but can
 be used for grouping across columns:
@@ -480,11 +492,6 @@ be used for grouping across columns:
 Take for example this dataset
 
     (conservation_expl <- read_csv("conservation_explanation.csv"))
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   `conservation abbreviation` = col_character()
-    ## )
 
     ## # A tibble: 11 x 1
     ##    `conservation abbreviation`                  
@@ -530,7 +537,6 @@ The opposite is tidyr's `unite()` function. You specify the new column
 name, and then the columns to be united, and lastly what seperator you
 want to use.
 
-    #merging currency and goal columns
     conservation_table %>%
       unite(united_col, abbreviation, description, sep=": ")
 
@@ -570,7 +576,6 @@ states into our main `msleep` table. The main data contained an extra
 `domisticated` label which i wanted to keep. This is done in the last
 line of the table with an `ifelse()`.
 
-    #joining column data
     msleep %>%
       select(name, conservation) %>%
       mutate(conservation = toupper(conservation)) %>%
@@ -683,19 +688,20 @@ but in principle you can do anything.
 The same code will turn any value that reads "omni" into NA
 
     msleep %>%
+      select(name:order) %>%
       na_if("omni")
 
-    ## # A tibble: 83 x 11
-    ##    name     genus  vore  order  conse~ sleep~ sleep~ sleep~ awake  brainwt
-    ##    <chr>    <chr>  <chr> <chr>  <chr>   <dbl>  <dbl>  <dbl> <dbl>    <dbl>
-    ##  1 Cheetah  Acino~ carni Carni~ lc      12.1  NA     NA     11.9  NA      
-    ##  2 Owl mon~ Aotus  <NA>  Prima~ <NA>    17.0   1.80  NA      7.00  1.55e-2
-    ##  3 Mountai~ Aplod~ herbi Roden~ nt      14.4   2.40  NA      9.60 NA      
-    ##  4 Greater~ Blari~ <NA>  Soric~ lc      14.9   2.30   0.133  9.10  2.90e-4
-    ##  5 Cow      Bos    herbi Artio~ domes~   4.00  0.700  0.667 20.0   4.23e-1
-    ##  6 Three-t~ Brady~ herbi Pilosa <NA>    14.4   2.20   0.767  9.60 NA      
-    ##  7 Norther~ Callo~ carni Carni~ vu       8.70  1.40   0.383 15.3  NA      
-    ##  8 Vesper ~ Calom~ <NA>  Roden~ <NA>     7.00 NA     NA     17.0  NA      
-    ##  9 Dog      Canis  carni Carni~ domes~  10.1   2.90   0.333 13.9   7.00e-2
-    ## 10 Roe deer Capre~ herbi Artio~ lc       3.00 NA     NA     21.0   9.82e-2
-    ## # ... with 73 more rows, and 1 more variable: bodywt <dbl>
+    ## # A tibble: 83 x 4
+    ##    name                       genus       vore  order       
+    ##    <chr>                      <chr>       <chr> <chr>       
+    ##  1 Cheetah                    Acinonyx    carni Carnivora   
+    ##  2 Owl monkey                 Aotus       <NA>  Primates    
+    ##  3 Mountain beaver            Aplodontia  herbi Rodentia    
+    ##  4 Greater short-tailed shrew Blarina     <NA>  Soricomorpha
+    ##  5 Cow                        Bos         herbi Artiodactyla
+    ##  6 Three-toed sloth           Bradypus    herbi Pilosa      
+    ##  7 Northern fur seal          Callorhinus carni Carnivora   
+    ##  8 Vesper mouse               Calomys     <NA>  Rodentia    
+    ##  9 Dog                        Canis       carni Carnivora   
+    ## 10 Roe deer                   Capreolus   herbi Artiodactyla
+    ## # ... with 73 more rows

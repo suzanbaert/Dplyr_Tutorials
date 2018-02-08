@@ -118,6 +118,7 @@ The sample code will remove any vowels:
 
 ```{r}
 msleep %>%
+  select(name:sleep_total) %>%
   mutate_all(~str_replace_all(., "[aeiou]", ""))
 ```
 
@@ -139,8 +140,8 @@ To note: if you want to round to a few digits you will need to make a function o
 
 ```{r}
 msleep %>%
-  mutate_if(is.numeric, round) %>%
-  glimpse()
+  select(name, sleep_total:bodywt) %>%
+  mutate_if(is.numeric, round)
 ```
 
 
@@ -148,10 +149,12 @@ msleep %>%
 ###  **Mutate_at to change specifc columns**
 
 All columns containing the word sleep are in hours. If I want those in minutes, I can use `mutate_at()`. To indicate that I want the condition to be based on the column name I can use `vars(contains("sleep"))`. Inside `vars()` you can use any of the `select()`helpers.  
-The second argument of `mutate_at()` needs to be function, so I have to wrap my calculation instructions with a tilde to make a function on the fly.
+The second argument of `mutate_at()` needs to be function, so I have to wrap my calculation instructions with a tilde to make a function on the fly.  
+
+The sample code shows that in this case all `sleep` columns have been changed into minutes, but `awake` did not.
 ```{r}
 msleep %>%
-  select(name, sleep_total:bodywt) %>%
+  select(name, sleep_total:awake) %>%
   mutate_at(vars(contains("sleep")), ~(.*60)) 
 ```
 <br>
@@ -197,7 +200,7 @@ The sample code will divide the current measure `sleep_total` into a discrete "l
 
 ```{r}
 msleep %>%
-  select(name, contains("sleep")) %>%
+  select(name, sleep_total) %>%
   mutate(sleep_time = ifelse(sleep_total > 10, "long", "short")) 
 ```
 <br>
@@ -210,6 +213,7 @@ Unfortunately there seems to be no easy way to get `case_when()` to return an or
 
 ```{r}
 msleep %>%
+  select(name, sleep_total) %>%
   mutate(sleep_total_discr = case_when(
     sleep_total > 13 ~ "very long",
     sleep_total > 10 ~ "long",
@@ -217,8 +221,7 @@ msleep %>%
     TRUE ~ "short")) %>%
   mutate(sleep_total_discr = factor(sleep_total_discr, 
                                     levels = c("short", "limited", 
-                                               "long", "very long"))) %>%
-  count(sleep_total_discr)
+                                               "long", "very long")))
 ```
 
 
@@ -242,7 +245,7 @@ msleep %>%
 ## **Splitting and merging columns**
 
 Take for example this dataset
-```{r}
+```{r message=FALSE, warning=FALSE}
 (conservation_expl <- read_csv("conservation_explanation.csv"))
 ```
 
@@ -261,7 +264,6 @@ The opposite is tidyr's `unite()` function. You specify the new column name, and
 
 
 ```{r}
-#merging currency and goal columns
 conservation_table %>%
   unite(united_col, abbreviation, description, sep=": ")
 ```
@@ -277,7 +279,6 @@ The sample code will add the description of the different conservation states in
 
 
 ```{r}
-#joining column data
 msleep %>%
   select(name, conservation) %>%
   mutate(conservation = toupper(conservation)) %>%
@@ -326,6 +327,7 @@ The same code will turn any value that reads "omni" into NA
 
 ```{r}
 msleep %>%
+  select(name:order) %>%
   na_if("omni")
 ```
 
