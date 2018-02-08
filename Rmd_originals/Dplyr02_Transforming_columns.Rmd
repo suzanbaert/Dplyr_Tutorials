@@ -55,8 +55,8 @@ Imagine that we have a database with two large values which we assume are typos 
 
 ```{r}
 msleep %>%
+  select(name, brainwt) %>%
   mutate(brainwt2 = ifelse(brainwt > 4, NA, brainwt)) %>%
-  select(starts_with("brain")) %>%
   arrange(desc(brainwt))
 ```
 
@@ -67,8 +67,8 @@ The sample code will return the last word of the animal name and makes it lower 
 ```{r}
 
 msleep %>%
-  mutate(name_last_word = tolower(str_extract(name, pattern = "\\w+$"))) %>%
-  select(name, name_last_word)
+  select(name) %>%
+  mutate(name_last_word = tolower(str_extract(name, pattern = "\\w+$")))
 ```
 
 <br>
@@ -105,10 +105,11 @@ msleep_ohno[,1:4]
 Let's clean it up again:  
 In this code I am assume that not all values show the same amount of extra white spaces as is often the case with parsed data: it frst removes all extra white spaces and then removes any `/n`.
 ```{r}
-msleep_ohno %>%
+msleep_corr <- msleep_ohno %>%
   mutate_all(str_trim) %>%
-  mutate_all(~str_replace_all(., "/n", "")) %>%
-  select(1:4)
+  mutate_all(~str_replace_all(., "/n", "")) 
+
+msleep_corr[,1:4]
 ```
 
 
@@ -134,12 +135,12 @@ msleep %>%
 
 
 In these cases we have to add the condition that columns need to be numeric before giving `round()` instructions:  
-To note: if you want to round to a few digits you will need to make a function on the fly by using a tilde: such as `mutate_if(is.numeric, ~round(. ,2))`.
+To note: if you want to round to a few digits you will need to make a function on the fly by using a tilde: such as `mutate_if(is.numeric, ~round(. ,2))`.  
 
 ```{r}
 msleep %>%
   mutate_if(is.numeric, round) %>%
-  select(name, sleep_total:bodywt)
+  glimpse()
 ```
 
 
@@ -150,8 +151,8 @@ All columns containing the word sleep are in hours. If I want those in minutes, 
 The second argument of `mutate_at()` needs to be function, so I have to wrap my calculation instructions with a tilde to make a function on the fly.
 ```{r}
 msleep %>%
-  mutate_at(vars(contains("sleep")), ~(.*60)) %>%
-  select(sleep_total:bodywt)
+  select(name, sleep_total:bodywt) %>%
+  mutate_at(vars(contains("sleep")), ~(.*60)) 
 ```
 <br>
 
@@ -196,9 +197,8 @@ The sample code will divide the current measure `sleep_total` into a discrete "l
 
 ```{r}
 msleep %>%
-  mutate(sleep_time = ifelse(sleep_total > 10, "long", "short")) %>%
-  select(name, contains("sleep"))
-  
+  select(name, contains("sleep")) %>%
+  mutate(sleep_time = ifelse(sleep_total > 10, "long", "short")) 
 ```
 <br>
 
@@ -263,8 +263,7 @@ The opposite is tidyr's `unite()` function. You specify the new column name, and
 ```{r}
 #merging currency and goal columns
 conservation_table %>%
-  unite(united_col, abbreviation, description, sep=": ") %>%
-  select(united_col)
+  unite(united_col, abbreviation, description, sep=": ")
 ```
 
 <br>
