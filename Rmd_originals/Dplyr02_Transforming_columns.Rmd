@@ -106,8 +106,8 @@ Let's clean it up again:
 In this code I am assume that not all values show the same amount of extra white spaces as is often the case with parsed data: it frst removes all extra white spaces and then removes any `/n`.
 ```{r}
 msleep_corr <- msleep_ohno %>%
-  mutate_all(str_trim) %>%
-  mutate_all(~str_replace_all(., "/n", "")) 
+  mutate_all(~str_replace_all(., "/n", "")) %>%
+  mutate_all(str_trim)
 
 msleep_corr[,1:4]
 ```

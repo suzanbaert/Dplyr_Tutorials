@@ -229,24 +229,24 @@ extra white spaces as is often the case with parsed data: it frst
 removes all extra white spaces and then removes any `/n`.
 
     msleep_corr <- msleep_ohno %>%
-      mutate_all(str_trim) %>%
-      mutate_all(~str_replace_all(., "/n", "")) 
+      mutate_all(~str_replace_all(., "/n", "")) %>%
+      mutate_all(str_trim)
 
     msleep_corr[,1:4]
 
     ## # A tibble: 83 x 4
-    ##    name                            genus            vore       order      
-    ##    <chr>                           <chr>            <chr>      <chr>      
-    ##  1 "Cheetah   "                    "Acinonyx   "    "carni   " "Carnivora~
-    ##  2 "Owl monkey   "                 "Aotus   "       "omni   "  "Primates ~
-    ##  3 "Mountain beaver   "            "Aplodontia   "  "herbi   " "Rodentia ~
-    ##  4 "Greater short-tailed shrew   " "Blarina   "     "omni   "  "Soricomor~
-    ##  5 "Cow   "                        "Bos   "         "herbi   " "Artiodact~
-    ##  6 "Three-toed sloth   "           "Bradypus   "    "herbi   " "Pilosa   "
-    ##  7 "Northern fur seal   "          "Callorhinus   " "carni   " "Carnivora~
-    ##  8 "Vesper mouse   "               "Calomys   "     "NA   "    "Rodentia ~
-    ##  9 "Dog   "                        "Canis   "       "carni   " "Carnivora~
-    ## 10 "Roe deer   "                   "Capreolus   "   "herbi   " "Artiodact~
+    ##    name                       genus       vore  order       
+    ##    <chr>                      <chr>       <chr> <chr>       
+    ##  1 Cheetah                    Acinonyx    carni Carnivora   
+    ##  2 Owl monkey                 Aotus       omni  Primates    
+    ##  3 Mountain beaver            Aplodontia  herbi Rodentia    
+    ##  4 Greater short-tailed shrew Blarina     omni  Soricomorpha
+    ##  5 Cow                        Bos         herbi Artiodactyla
+    ##  6 Three-toed sloth           Bradypus    herbi Pilosa      
+    ##  7 Northern fur seal          Callorhinus carni Carnivora   
+    ##  8 Vesper mouse               Calomys     NA    Rodentia    
+    ##  9 Dog                        Canis       carni Carnivora   
+    ## 10 Roe deer                   Capreolus   herbi Artiodactyla
     ## # ... with 73 more rows
 
 Obviously you can use any regex inside `mutate_all()` as well. The
