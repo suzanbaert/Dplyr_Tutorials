@@ -1,0 +1,206 @@
+---
+title: "Dplyr03_Filtering_rows"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, error = FALSE, warning=FALSE)
+```
+
+
+# Data Wrangling Part 3: Basic and more advanced ways to filter the cases you need
+
+This is the third blog post in a series of dplyr tutorials:
+
+* [Part 1: Basic to Advanced Ways to Select Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
+* [Part 2: Transforming your columns into the right shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
+
+
+Content:  
+
+--
+
+
+**The data**  
+As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
+```{r}
+library(tidyverse)
+
+glimpse(msleep)
+```
+<br>
+
+
+## **Arranging rows**
+
+One of the easiest row transformation is probably to re-arrange your rows. The `arrange()` function is quite straightforward: you just add the variable that you want to base your arranging on. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
+
+Sorting numeric variables:  
+`arrange(sleep_total)` will arrange it from short sleepers to long sleepers. In this case I wanted the opposite:
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  arrange(desc(sleep_total))
+```
+
+
+You can add multiple calls inside an `arrange()` statement. By adding two variables for instance, it will first sort based on the `order` and within those groups amongst `sleep_total`. 
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  arrange(order, desc(sleep_total))
+```
+
+If you already grouped your data, you can refer to that group within the `arrange()` statement as well by adding a `.by_group = TRUE` statement.
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  group_by(order) %>% 
+  arrange(desc(sleep_total), .by_group = TRUE)
+```
+<br>
+
+
+## **Basic row filters**
+
+In many cases you don't want to include all rows in your analysis but only a selection of rows. The function to use only specific rows is called `filter()` in dplyr. 
+
+### **Filtering rows based on a numeric variable**
+
+You can filter numeric variables based on their values. The most used operators for this are `>`, `>=`, `<`, `<=` and `==`.  
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  filter(sleep_total > 18)
+```
+
+If you want to select a range of values you can use two logical requirements. For instance to select all animals with a total sleep time between 15 and 18 hours, I could use: `filter(sleep_total >= 15, sleep_total <= 18)`, but there is a slightly shorter way by using the `between()` function.
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  filter(between(sleep_total, 15, 18))
+```
+<br>
+
+### **Filtering based on a exact character variable matches**
+
+If you want to select a specific group of animals  for instance you can use the `==` comparison operator:
+
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  filter(order == "Didelphimorphia")
+```
+
+Simarly you can use the other operators:  
+`filter(order != "Rodentia")` will select everything except the Rodentia rows.  
+`filter(name > "v")` will just select the rows with a name in the alphabet after the letter v.  
+  
+If you want to select more than one animal you can use the `%in%` operator. The following code will just select the rows with animals belonging to the order of Didelphimorphia and Diprotodontia.  
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  filter(order %in% c("Didelphimorphia", "Diprotodontia"))
+```
+
+You can use the `%in%` operator to deselect certain groups as well, in this case you have to negate by adding an exclamation mark at the beginning of your `filter`. Making a `!%in%` might seem logic but it won't work.
+
+```{r}
+remove <- c("Rodentia", "Carnivora", "Primates")
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  filter(!order %in% remove)
+  
+```
+
+<br>
+
+### **Filtering rows based on regex**
+
+The above options will only work if you can use the full variable content. In some cases though it will be needed to filter based on partial matches. In this case, we need a function that will evaluate regular expressions on strings and return boolean values. Whenever the statement is `TRUE` the row will be filtered.  
+There are two main options for this: base R's `grepl()` function, or `str_detect()` from the `stringr` package. 
+
+Whenever you are lookin for partial matches, it is important to remember that R is case sensitive. By just using `filter(str_detect(name, pattern="mouse"))` we would leave out any row called Mouse. In this case it does not make a difference, but it's a good habit to create. 
+
+I used `str_detect()` below as it is easier to understand for beginners. For those intersted, the alternative would be `filter(grepl(pattern="mouse", tolower(name)))`.  
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  filter(str_detect(tolower(name), pattern = "mouse"))
+
+  
+```
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  
+```
+
+
+
+
