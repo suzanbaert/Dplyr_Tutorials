@@ -139,38 +139,61 @@ msleep %>%
   
 ```
 
+<br>
+### **Filtering based on multiple conditions**
 
+All the above just returns rows based on a single condition, but the filter option allows also AND and OR style filters:  
+`filter(condition1 | condition2)` will return rows where condition 1 OR condition 2 is met.   
+`filter(condition1, condition2)` will return rows where both conditions are met.  
+  
+Multipe AND, OR and NOT conditions can be combined. The sample code will return all rows with a bodywt above 100 and either have a sleep_total above 15 or are not part of the Carnivora order.
+
+```{r}
+msleep %>% 
+  select(name, order, sleep_total:bodywt) %>% 
+  filter(bodywt > 100, (sleep_total > 15 | order != "Carnivora"))
+  
+```
+
+<br>
+
+## **Filtering across multiple columns**
+
+### **Filter_all**
+
+Admittedly, `msleep` is not the best database to showcase this power, but imagine you have a database with a few columns and you want to select all rows that have a certain word in either column. Take a financial dataframe for instance and you want to select all rows with 'food', whether food is mentioned in the main category column, the subcategory column, the comments column or the place you've spent it.  
+You could make a long filter statement with 4 different conditions wrapped inside OR statements. Or you just filter across all columns for the string "food".  
+
+In the sample code below I'm searching for the string "Ca" across all columns.  
+The equivalent of 'OR' in this case is `any_vars()`. The below code basically asks to retain any rows where any of the variables has the pattern "Ca" inside.
 
 
 ```{r}
 msleep %>% 
-  select(name, sleep_total) %>% 
-  
+  filter_all(any_vars(str_detect(., pattern = "Ca")))
 ```
 
 
-
-
+The same can be done for numerical values:
+This code will retain any rows that has any value below 0.1
 
 
 ```{r}
-msleep %>% 
-  select(name, sleep_total) %>% 
+msleep %>%  
+  select(name, sleep_total:bodywt) %>% 
+  filter_all(any_vars(. < 0.1))
   
 ```
 
-
-
-
-
+The `any_vars()` statement is equivalent to OR, so of course there is an equivalent for AND statements as well:`all_vars()`.
+The below code will retain any rows where all values are above 1.
 
 ```{r}
-msleep %>% 
-  select(name, sleep_total) %>% 
+msleep %>%  
+  select(name, sleep_total:bodywt, -awake) %>% 
+  filter_all(all_vars(. > 1))
   
 ```
-
-
 
 
 
