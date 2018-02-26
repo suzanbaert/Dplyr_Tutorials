@@ -1,6 +1,9 @@
 ---
 title: "Dplyr03_Filtering_rows"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -30,38 +33,6 @@ glimpse(msleep)
 ```
 <br>
 
-
-## **Arranging rows**
-
-One of the easiest row transformation is probably to re-arrange your rows. The `arrange()` function is quite straightforward: you just add the variable that you want to base your arranging on. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
-
-Sorting numeric variables:  
-`arrange(sleep_total)` will arrange it from short sleepers to long sleepers. In this case I wanted the opposite:
-
-```{r}
-msleep %>% 
-  select(name, sleep_total) %>% 
-  arrange(desc(sleep_total))
-```
-
-
-You can add multiple calls inside an `arrange()` statement. By adding two variables for instance, it will first sort based on the `order` and within those groups amongst `sleep_total`. 
-
-```{r}
-msleep %>% 
-  select(order, name, sleep_total) %>% 
-  arrange(order, desc(sleep_total))
-```
-
-If you already grouped your data, you can refer to that group within the `arrange()` statement as well by adding a `.by_group = TRUE` statement.
-
-```{r}
-msleep %>% 
-  select(order, name, sleep_total) %>% 
-  group_by(order) %>% 
-  arrange(desc(sleep_total), .by_group = TRUE)
-```
-<br>
 
 
 ## **Basic row filters**
@@ -140,6 +111,7 @@ msleep %>%
 ```
 
 <br>
+
 ### **Filtering based on multiple conditions**
 
 All the above just returns rows based on a single condition, but the filter option allows also AND and OR style filters:  
@@ -175,7 +147,7 @@ msleep %>%
 
 
 The same can be done for numerical values:
-This code will retain any rows that has any value below 0.1
+This code will retain any rows that has any value below 0.1:
 
 
 ```{r}
@@ -195,35 +167,40 @@ msleep %>%
   
 ```
 
+<br>
 
+### **Filter_if**
 
+The `filter_all() can sometimes go a bit wild. In the msleep database I have a set of sleep and weight measurements where some data is missing - there is nothing I can do to add data there. But the first few set of columns just contain info on animals. The vore of Vesper Mouse is missing, but that is info I can still dig up and add to the dataframe if I wanted.  
+So imagine I want to find out all data rows where we NA in the first few columns. `filter_all(any_vars(is.na(.)))` will be quite useless because it would return 27 rows, many of which are missing data in the measurement section.  
 
-```{r}
-msleep %>% 
-  select(name, sleep_total) %>% 
-  
-```
-
-
-
+In this case: `filter_if()` comes in handy. The describing columns are all character columns, while the measurement data is numeric. So using `filter_if()` I can specify that I want to just filter on character variables. In this case I onnly get 7 rows.
 
 
 ```{r}
 msleep %>% 
-  select(name, sleep_total) %>% 
+  select(name:order, sleep_total:sleep_rem) %>% 
+  filter_if(is.character, any_vars(is.na(.)))
+
   
 ```
 
+Similarly, you can add `is.numeric`, `is.integer`, `is.double`, `is.logical`, `is.factor`.
+If you have data columns, you can load the lubridate package, and use `is.POSIXt` or `is.Date`.
+
+<br>
 
 
+
+### **Filter_at**
+
+One of the more powerful functions is `filter_at()`: it does not filter all columns, nor does it need you to specify the type of column, you can just select columns to which the change should happen via the `vars()` argument. This argument allows anything that can be done within a select statement: so you can use logical numerical functions, regex, etc (See my first blog post for select options).  
+The second argument is the condition for selection. You can use `all_vars()` if all columns need to return TRUE (AND equivalent), or `any_vars()` in case just one variable needs to return TRUE (OR equivalent).
 
 
 ```{r}
 msleep %>% 
-  select(name, sleep_total) %>% 
+  select(name, sleep_total:sleep_rem, brainwt:bodywt) %>% 
+  filter_at(vars(contains("sleep")), all_vars(.>5))
   
 ```
-
-
-
-

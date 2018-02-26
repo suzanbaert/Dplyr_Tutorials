@@ -1,0 +1,65 @@
+---
+title: "Dplyr04_Summarizing_and_presenting"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, error = FALSE, warning=FALSE)
+```
+
+
+# Data Wrangling Part 3: Basic and more advanced ways to filter the cases you need
+
+This is the third blog post in a series of dplyr tutorials:
+
+* [Part 1: Basic to Advanced Ways to Select Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
+* [Part 2: Transforming your columns into the right shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
+* [Part 3: ]
+
+
+Content:  
+
+--
+
+
+**The data**  
+As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
+```{r}
+library(tidyverse)
+
+glimpse(msleep)
+```
+<br>
+
+
+## **Arranging rows**
+
+One of the easiest row transformation is probably to re-arrange your rows. The `arrange()` function is quite straightforward: you just add the variable that you want to base your arranging on. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
+
+Sorting numeric variables:  
+`arrange(sleep_total)` will arrange it from short sleepers to long sleepers. In this case I wanted the opposite:
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  arrange(desc(sleep_total))
+```
+
+
+You can add multiple calls inside an `arrange()` statement. By adding two variables for instance, it will first sort based on the `order` and within those groups amongst `sleep_total`. 
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  arrange(order, desc(sleep_total))
+```
+
+If you already grouped your data, you can refer to that group within the `arrange()` statement as well by adding a `.by_group = TRUE` statement.
+
+```{r}
+msleep %>% 
+  select(order, name, sleep_total) %>% 
+  group_by(order) %>% 
+  arrange(desc(sleep_total), .by_group = TRUE)
+```
+<br>
