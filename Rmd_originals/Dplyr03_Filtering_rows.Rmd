@@ -25,9 +25,11 @@ Content:
 
 
 **The data**  
-As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
+As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset. This dataset is built into ggplot2, so if you load tidyverse you will get it. Otherwise, just add once `msleep <- ggplot2:msleep` argument to have the dataset available. 
 ```{r}
-library(tidyverse)
+library(dplyr)
+library(stringr)
+msleep <- ggplot2::msleep
 
 glimpse(msleep)
 ```
@@ -37,11 +39,15 @@ glimpse(msleep)
 
 ## **Basic row filters**
 
-In many cases you don't want to include all rows in your analysis but only a selection of rows. The function to use only specific rows is called `filter()` in dplyr. 
+In many cases you don't want to include all rows in your analysis but only a selection of rows. The function to use only specific rows is called `filter()` in dplyr.  
+The general syntax of filter is: `filter(dataset, condition)`. In case it gets added in a pipeline, you will only see the condition argument, as the dataset is piped into the function.  
+
+
+
 
 ### **Filtering rows based on a numeric variable**
 
-You can filter numeric variables based on their values. The most used operators for this are `>`, `>=`, `<`, `<=` and `==`.  
+You can filter numeric variables based on their values. The most used operators for this are `>`, `>=`, `<`, `<=`, `==` and `!=`.  
 
 ```{r}
 msleep %>% 
@@ -49,19 +55,34 @@ msleep %>%
   filter(sleep_total > 18)
 ```
 
-If you want to select a range of values you can use two logical requirements. For instance to select all animals with a total sleep time between 15 and 18 hours, I could use: `filter(sleep_total >= 15, sleep_total <= 18)`, but there is a slightly shorter way by using the `between()` function.
+If you want to select a range of values you can use two logical requirements. For instance to select all animals with a total sleep time between 15 and 18 hours, I could use: `filter(sleep_total >= 16, sleep_total <= 18)`, but there is a slightly shorter way by using the `between()` function.
 
 ```{r}
 msleep %>% 
   select(name, sleep_total) %>% 
-  filter(between(sleep_total, 15, 18))
+  filter(between(sleep_total, 16, 18))
 ```
+
+Another sometimes useful function is `near()`.  
+The sample code will select all rows where `sleep_total` is nearly 17. You have to specify a tolerance `tol` to indicate how far the values can be. You can add a specific number: `filter(near(sleep_total, 17, tol = 0.5))` for instance will return any rows where sleeptotal is between 16.5 and 17.5, or you can add a formula. The sample code will return all rows that are within one standard deviation of 17.
+
+```{r}
+msleep %>% 
+  select(name, sleep_total) %>% 
+  filter(near(sleep_total, 17, tol = sd(sleep_total)))
+```
+
+
+
+
 <br>
+
+
+
 
 ### **Filtering based on a exact character variable matches**
 
 If you want to select a specific group of animals  for instance you can use the `==` comparison operator:
-
 
 ```{r}
 msleep %>% 
@@ -115,8 +136,12 @@ msleep %>%
 ### **Filtering based on multiple conditions**
 
 All the above just returns rows based on a single condition, but the filter option allows also AND and OR style filters:  
-`filter(condition1 | condition2)` will return rows where condition 1 OR condition 2 is met.   
-`filter(condition1, condition2)` will return rows where both conditions are met.  
+
+`filter(condition1, condition2)` will return rows where both conditions are met. 
+`filter(condition1, !condition2)` will return all rows where condition one is true but condition 2 is not.
+`filter(condition1 | condition2)` will return rows where condition 1 and/or condition 2 is met.
+`filter(xor(condition1,ondition)` will return all rows where only one of the conditions is met, and not when both conditions are met.
+
   
 Multipe AND, OR and NOT conditions can be combined. The sample code will return all rows with a bodywt above 100 and either have a sleep_total above 15 or are not part of the Carnivora order.
 
@@ -127,9 +152,51 @@ msleep %>%
   
 ```
 
+
+Example with `xor()`
+```{r}
+msleep %>%
+  select(name, bodywt:brainwt) %>% 
+  filter(xor(bodywt > 100, brainwt > 1))
+```
+
+Example with `!`:  
+The sample code will select all rows where `brainwt` is larger than 1, but `bodywt` does not exceed 100.
+
+```{r}
+msleep %>% 
+  select(name, sleep_total, brainwt, bodywt) %>% 
+  filter(brainwt > 1, !bodywt > 100)
+```
+
+
 <br>
 
+### **Filtering out empty rows**
+
+To filter out empty rows, you negate the `is.na()` function inside a filter:  
+The sample code will remove any rows where `conservation` is `NA`.
+
+```{r}
+msleep %>% 
+  select(name, conservation:sleep_cycle) %>% 
+  filter(!is.na(conservation))
+```
+
+
+
+
+<br><br><hr><br>
+
+
 ## **Filtering across multiple columns**
+
+The `dplyr` package has a few powerful variants to filter multiple columns:  
++ `Filter_all` to filter across all columns
++ `Filter_if` and `filter_at` to filter across a few specified columns
+  
+In these cases, there is a general syntax: first you specify which columns, then you mention the condition based on which to filter. In many cases you will need a `.` operator within the condition which refers to the values we are looking at.
+
 
 ### **Filter_all**
 
@@ -194,13 +261,22 @@ If you have data columns, you can load the lubridate package, and use `is.POSIXt
 
 ### **Filter_at**
 
-One of the more powerful functions is `filter_at()`: it does not filter all columns, nor does it need you to specify the type of column, you can just select columns to which the change should happen via the `vars()` argument. This argument allows anything that can be done within a select statement: so you can use logical numerical functions, regex, etc (See my first blog post for select options).  
-The second argument is the condition for selection. You can use `all_vars()` if all columns need to return TRUE (AND equivalent), or `any_vars()` in case just one variable needs to return TRUE (OR equivalent).
+One of the more powerful functions is `filter_at()`: it does not filter all columns, nor does it need you to specify the type of column, you can just select columns to which the change should happen via the `vars()` argument. This argument allows anything that can be done within a select statement: so you can refer to them by name, but also by logical numerical functions, regex, etc (See my first blog post for select options).  
+The second argument is the condition for selection. You can use `all_vars()` if all columns need to return TRUE (AND equivalent), or `any_vars()` in case just one variable needs to return TRUE (OR equivalent).  
 
+Example: refer to columns by their name:
+
+```{r}
+msleep %>% 
+  select(name, sleep_total:sleep_rem, brainwt:bodywt) %>% 
+  filter_at(vars(sleep_total, sleep_rem), all_vars(.>5))
+```
+
+
+Example: using another select option:
 
 ```{r}
 msleep %>% 
   select(name, sleep_total:sleep_rem, brainwt:bodywt) %>% 
   filter_at(vars(contains("sleep")), all_vars(.>5))
-  
 ```
