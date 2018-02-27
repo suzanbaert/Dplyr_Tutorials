@@ -1,7 +1,7 @@
 ---
 title: "Dplyr03_Filtering_rows"
 output:
-  html_document:
+  md_document:
     toc: true
     toc_depth: 3
 ---
@@ -10,8 +10,6 @@ output:
 knitr::opts_chunk$set(message = FALSE, error = FALSE, warning=FALSE)
 ```
 
-
-# Data Wrangling Part 3: Basic and more advanced ways to filter the cases you need
 
 This is the third blog post in a series of dplyr tutorials:
 
@@ -25,7 +23,7 @@ Content:
 
 
 **The data**  
-As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset. This dataset is built into ggplot2, so if you load tidyverse you will get it. Otherwise, just add once `msleep <- ggplot2:msleep` argument to have the dataset available. 
+As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset. This dataset is built into ggplot2, so if you load tidyverse you will get it. Otherwise, just add once `msleep <- ggplot2::msleep` argument to have the dataset available. 
 ```{r}
 library(dplyr)
 library(stringr)
@@ -39,8 +37,7 @@ glimpse(msleep)
 
 ## **Basic row filters**
 
-In many cases you don't want to include all rows in your analysis but only a selection of rows. The function to use only specific rows is called `filter()` in dplyr.  
-The general syntax of filter is: `filter(dataset, condition)`. In case it gets added in a pipeline, you will only see the condition argument, as the dataset is piped into the function.  
+In many cases you don't want to include all rows in your analysis but only a selection of rows. The function to use only specific rows is called `filter()` in dplyr. The general syntax of filter is: `filter(dataset, condition)`. In case you filter inside a pipeline, you will only see the condition argument as the dataset is piped into the function.  
 
 
 
@@ -63,8 +60,8 @@ msleep %>%
   filter(between(sleep_total, 16, 18))
 ```
 
-Another sometimes useful function is `near()`.  
-The sample code will select all rows where `sleep_total` is nearly 17. You have to specify a tolerance `tol` to indicate how far the values can be. You can add a specific number: `filter(near(sleep_total, 17, tol = 0.5))` for instance will return any rows where sleeptotal is between 16.5 and 17.5, or you can add a formula. The sample code will return all rows that are within one standard deviation of 17.
+Another function that can come in handy is `near()`, which will select all code that is nearly a given value. You have to specify a tolerance `tol` to indicate how far the values can be. You can add a specific number: `filter(near(sleep_total, 17, tol = 0.5))` for instance will return any rows where `sleep_total` is between 16.5 and 17.5, or you can add a formula.  
+The sample code will return all rows that are within one standard deviation of 17.
 
 ```{r}
 msleep %>% 
@@ -119,9 +116,9 @@ msleep %>%
 The above options will only work if you can use the full variable content. In some cases though it will be needed to filter based on partial matches. In this case, we need a function that will evaluate regular expressions on strings and return boolean values. Whenever the statement is `TRUE` the row will be filtered.  
 There are two main options for this: base R's `grepl()` function, or `str_detect()` from the `stringr` package. 
 
-Whenever you are lookin for partial matches, it is important to remember that R is case sensitive. By just using `filter(str_detect(name, pattern="mouse"))` we would leave out any row called Mouse. In this case it does not make a difference, but it's a good habit to create. 
+Whenever you are looking for partial matches, it is important to remember that R is case sensitive. By just using `filter(str_detect(name, pattern="mouse"))` we would leave out any row called Mouse. In this case it does not make a difference, but it's a good habit to create. 
 
-I used `str_detect()` below as it is easier to understand for beginners. For those intersted, the alternative would be `filter(grepl(pattern="mouse", tolower(name)))`.  
+I used `str_detect()` below as it is easier to understand. For those interested, the alternative would be: `filter(grepl(pattern="mouse", tolower(name)))`.  
 
 ```{r}
 msleep %>% 
@@ -137,10 +134,10 @@ msleep %>%
 
 All the above just returns rows based on a single condition, but the filter option allows also AND and OR style filters:  
 
-`filter(condition1, condition2)` will return rows where both conditions are met. 
-`filter(condition1, !condition2)` will return all rows where condition one is true but condition 2 is not.
-`filter(condition1 | condition2)` will return rows where condition 1 and/or condition 2 is met.
-`filter(xor(condition1,ondition)` will return all rows where only one of the conditions is met, and not when both conditions are met.
++ `filter(condition1, condition2)` will return rows where both conditions are met.  
++ `filter(condition1, !condition2)` will return all rows where condition one is true but condition 2 is not.  
++ `filter(condition1 | condition2)` will return rows where condition 1 and/or condition 2 is met.  
++ `filter(xor(condition1, condition2)` will return all rows where only one of the conditions is met, and not when both conditions are met.  
 
   
 Multipe AND, OR and NOT conditions can be combined. The sample code will return all rows with a bodywt above 100 and either have a sleep_total above 15 or are not part of the Carnivora order.
@@ -191,11 +188,12 @@ msleep %>%
 
 ## **Filtering across multiple columns**
 
-The `dplyr` package has a few powerful variants to filter multiple columns:  
-+ `Filter_all` to filter across all columns
-+ `Filter_if` and `filter_at` to filter across a few specified columns
+The `dplyr` package has a few powerful variants to filter across multiple columns in one go: 
+
++ `Filter_all` to filter across all columns  
++ `Filter_if` and `filter_at` to filter across a few specified columns  
   
-In these cases, there is a general syntax: first you specify which columns, then you mention the condition based on which to filter. In many cases you will need a `.` operator within the condition which refers to the values we are looking at.
+In these cases, there is a general syntax: first you specify which columns, then you mention the condition for the filter. In many cases you will need a `.` operator within the condition which refers to the values we are looking at.
 
 
 ### **Filter_all**
@@ -203,12 +201,13 @@ In these cases, there is a general syntax: first you specify which columns, then
 Admittedly, `msleep` is not the best database to showcase this power, but imagine you have a database with a few columns and you want to select all rows that have a certain word in either column. Take a financial dataframe for instance and you want to select all rows with 'food', whether food is mentioned in the main category column, the subcategory column, the comments column or the place you've spent it.  
 You could make a long filter statement with 4 different conditions wrapped inside OR statements. Or you just filter across all columns for the string "food".  
 
-In the sample code below I'm searching for the string "Ca" across all columns.  
-The equivalent of 'OR' in this case is `any_vars()`. The below code basically asks to retain any rows where any of the variables has the pattern "Ca" inside.
+In the sample code below I'm searching for the string "Ca" across all columns. I want to keep rows where the string "Ca" is present in ANY of the variables, so I will wrqp the condition in `any_vars()`.  
+The below code basically asks to retain any rows where any of the variables has the pattern "Ca" inside.
 
 
 ```{r}
 msleep %>% 
+  select(name:order, sleep_total, -vore) %>% 
   filter_all(any_vars(str_detect(., pattern = "Ca")))
 ```
 
@@ -238,7 +237,7 @@ msleep %>%
 
 ### **Filter_if**
 
-The `filter_all() can sometimes go a bit wild. In the msleep database I have a set of sleep and weight measurements where some data is missing - there is nothing I can do to add data there. But the first few set of columns just contain info on animals. The vore of Vesper Mouse is missing, but that is info I can still dig up and add to the dataframe if I wanted.  
+The `filter_all()` function can sometimes go a bit wild. The `msleep` dataset has a set of sleep and weight measurements where some data is missing - there is nothing I can do to add data there. But the first few set of columns just contain info on animals. The vore of Vesper Mouse is missing, but that is info I can still dig up and add to the dataframe if I wanted.  
 So imagine I want to find out all data rows where we NA in the first few columns. `filter_all(any_vars(is.na(.)))` will be quite useless because it would return 27 rows, many of which are missing data in the measurement section.  
 
 In this case: `filter_if()` comes in handy. The describing columns are all character columns, while the measurement data is numeric. So using `filter_if()` I can specify that I want to just filter on character variables. In this case I onnly get 7 rows.
@@ -262,7 +261,8 @@ If you have data columns, you can load the lubridate package, and use `is.POSIXt
 ### **Filter_at**
 
 One of the more powerful functions is `filter_at()`: it does not filter all columns, nor does it need you to specify the type of column, you can just select columns to which the change should happen via the `vars()` argument. This argument allows anything that can be done within a select statement: so you can refer to them by name, but also by logical numerical functions, regex, etc (See my first blog post for select options).  
-The second argument is the condition for selection. You can use `all_vars()` if all columns need to return TRUE (AND equivalent), or `any_vars()` in case just one variable needs to return TRUE (OR equivalent).  
+  
+The second argument is the condition for selection. Similar to the examples above, you can use `all_vars()` if all columns need to return TRUE (AND equivalent), or `any_vars()` in case just one variable needs to return TRUE (OR equivalent).  
 
 Example: refer to columns by their name:
 
