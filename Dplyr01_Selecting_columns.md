@@ -230,7 +230,7 @@ The `select_if` function allows you to pass functions which return
 logical statements. For instance you can select all the string columns
 by using `select_if(is.character)`. Similarly, you can add `is.numeric`,
 `is.integer`, `is.double`, `is.logical`, `is.factor`.  
-If you have data columns, you can load the `lubridate` package, and use
+If you have date columns, you can load the `lubridate` package, and use
 `is.POSIXt` or `is.Date`.
 
     msleep %>%
