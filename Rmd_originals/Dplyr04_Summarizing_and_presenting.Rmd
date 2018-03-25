@@ -1,6 +1,10 @@
 ---
-title: "Dplyr04_Summarizing_and_presenting"
-output: html_document
+title: "Dplyr04_Summarizing_and_sl"
+output: 
+  md_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -8,13 +12,13 @@ knitr::opts_chunk$set(message = FALSE, error = FALSE, warning=FALSE)
 ```
 
 
-# Data Wrangling Part 3: Basic and more advanced ways to filter the cases you need
+# Data Wrangling Part 4: Summarizing and slicing your data 
 
-This is the third blog post in a series of dplyr tutorials:
+This is the fourh blog post in a series of dplyr tutorials:
 
 * [Part 1: Basic to Advanced Ways to Select Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
 * [Part 2: Transforming your columns into the right shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
-* [Part 3: ]
+* [Part 3: Filtering rows](https://suzan.rbind.io/2018/02/dplyr-tutorial-3/))
 
 
 Content:  
@@ -22,39 +26,226 @@ Content:
 --
 
 
+Note: as per previous blog posts, I will present everything in the form of a pipe. In some of these cases this might not be necessary and it would be just as easy to write it as a single function, but as I want to present options that you can use in your pipes, all below examples will be piped.
+
+<br>
+
 **The data**  
 As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
 ```{r}
-library(tidyverse)
-
+library(dplyr)
+msleep <- ggplot2::msleep
 glimpse(msleep)
 ```
 <br>
 
+## **Counting cases**
+
+
+The easiest way to know how observations you have for a specific variable, is to use `count()`. By adding the `sort = TRUE` argument immediately returns a sorted table with descending number of observations:
+
+```{r}
+msleep %>% 
+  count(order, sort = TRUE)
+```
+
+
+You can add multiple variables to a `count()` statement; the example below is counting by order and vore:
+
+```{r}
+msleep %>% 
+  count(order, vore, sort = TRUE)
+```
+
+
+### tally, add_tally and add_count
+
+If you're only interested in counting the total number of cases for a dataframe, you could use `tally()`, which behaves simarly to `nrow()`. The latter is shorter so I would still prefer that one.
+
+You can't provide a group with `tally()`, it only works to count the overall number of observations. In fact, as is described in the `dplyr` documentation, `count()` is a short-hand for `group_by()` and `tally()`. 
+
+```{r}
+msleep %>% 
+  tally()
+```
+
+More interesting is the `add_tally()` function which automatically adds a column with the overall number of observations. This is will be the same as `mutate(n = n())`.
+
+
+```{r}
+msleep %>% 
+  select(1:3) %>% 
+  add_tally()
+```
+
+
+Even more interesting is `add_count()` which takes a variable as argument, and adds a column which the number of observations. This saves the combination of grouping and mutating.
+
+
+```{r}
+msleep %>% 
+  select(1:3) %>% 
+  add_count(vore)
+```
+
+
+
+
+
+<br><hr>
+
+## **Summarising data**
+
+*To note: for some functions, `dplyr` foresees both an American English and a UK English variant. The function `summarise()` is the equivalent of `summarize()`.*
+
+If you just want to know the number of observations `count()` does the job, but to produce summaries of the average, sum, standard deviation, minimum, maximum of the data, we need `summarise()`. To use the function you just add your new column name, and after the equal sign the mathematics of what needs to happen: `column_name = function(variable)`.
+You can add multiple summary functions behind each other. 
+
+```{r}
+msleep %>% 
+  summarise(n = n(), average = mean(sleep_total), maximum = max(sleep_total))
+```
+
+
+In most cases, we don't just want to summarise the whole data table, but we want to get summaries by a group. To do this, you first need to specify by which variable(s) you want to divide the data using `group_by()`. You can add one of more variables as arguments in `group_by()`. 
+
+```{r}
+msleep %>% 
+  group_by(vore) %>% 
+  summarise(n = n(), average = mean(sleep_total), maximum = max(sleep_total))
+  
+```
+
+
+
+The `summarise()` call works with nearly any aggregate function
+
++ `n()` - gives the number of observations
++ `n_distinct(var)` - gives the numbers of unique values or `var` present
++ `sum(var)`, 
++ `mean(var)`, `median(var)`, `sd(var)`, `IQR(var)`, ... 
++ 
+
+
+any others I want to mention?
+
+
+```{r}
+msleep %>% 
+  group_by(vore) %>% 
+  summarise(average_minutes = mean(sleep_total)*60)
+```
+
+<br><hr>
+
+## **Summarise_all()**
+
+Similarly to the filter, select and mutate functions, `summarise()` comes with three additional functions for doing things to multiple columns in one go:
++ `summarise_all()` will summarise all columns based on your further instructions
++ `summarise_if()` requires a function that returns a boolean. If that is true, the summary instructions will be followed
++ `sumarise_at()` requires you to specify columns inside a `vars()` argument for which the summary will be done.
+
+
+### **Summarise_all**
+
+The function `summarise_all()` requires a function as argument, which it will apply to all columns. The sample code first selects all numeric columns, and then calculates the mean for each of them. I had to add the `na.rm = TRUE` argument to ignore `NA` values. 
+
+```{r}
+msleep %>% 
+  group_by(vore) %>% 
+  summarise_all(mean, na.rm=TRUE) 
+```
+
+
+The instructions for summarizing have to be a function. When there is no funcion availble in base R or a package to do what you want, you can either make a function upfront, or make a function on the fly. 
+The sample code will add 5 to the mean of each column. The function on the fly can be made by either using `funs(mean(., na.rm = TRUE) + 5)`, or via a tilde: `~mean(., na.rm = TRUE) + 5`.
+
+
+
+```{r}
+msleep %>%
+  group_by(vore) %>% 
+  summarise_all(~mean(., na.rm = TRUE) + 5) 
+```
+<br>
+
+
+### **Summarise_if**
+
+The function `summarise_if()` requires two arguments: 
+
++ First it needs information about the columns you want it to consider. This information needs to be a function that returns a boolean value. The easiest cases are functions like `is.numeric`, `is.integer`, `is.double`, `is.logical`, `is.factor`, `lubridate::is.POSIXt` or `lubridate::is.Date`.
+
++ Secondly, it needs information about how to summarise that data, which as above needs to be a function. If not a function, you can create a function on the fly using `funs()` or a tilde (see above).
+
+
+The sample code below will return the average of all numeric columns
+
+
+```{r}
+msleep %>% 
+  group_by(vore) %>% 
+  summarise_if(is.numeric, mean, na.rm=TRUE)
+```
+
+One of the downsides of the aggregate summarise functions is that you do not require a new column title. It therefore might not always be clear which this new value is. Luckily thanks to similar `rename_*()` functions, it only takes one line extra to rename them all:
+
+```{r}
+msleep %>% 
+  group_by(vore) %>% 
+  summarise_if(is.numeric, mean, na.rm=TRUE) %>% 
+  rename_if(is.numeric, ~paste0("avg_", .))
+```
+
+
+<br>
+
+### **Summarise_at**
+
+The function `summarise_at()` also requires two arguments: 
+
++ First it needs information about the columns you want it to consider. In this case you need to wrap them inside a `vars()` statement. Inside `vars()` you can use anything that can be used inside a `select()` statement. Have a look here if you need more info. 
+
++ Secondly, it needs information about how to summarise that data, which as above needs to be a function. If not a function, you can create a function on the fly using `funs()` or a tilde (see above).
+
+
+The sample code below will return the average of all columns which contain the word 'sleep'.
+
+```{r}
+msleep %>%
+  group_by(vore) %>% 
+  summarise_at(vars(contains("sleep")), mean, na.rm=TRUE) %>% 
+  rename_at(vars(contains("sleep")), ~paste0("avg_", .))
+```
+
+
+
+
+<br><hr>
+
 
 ## **Arranging rows**
 
-One of the easiest row transformation is probably to re-arrange your rows. The `arrange()` function is quite straightforward: you just add the variable that you want to base your arranging on. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
+
+```{r}
+
+```
+
+
+It's useful if your summary tables are arranged. This is when the `arrange()` function comes in. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
 
 Sorting numeric variables:  
 `arrange(sleep_total)` will arrange it from short sleepers to long sleepers. In this case I wanted the opposite:
 
 ```{r}
 msleep %>% 
-  select(name, sleep_total) %>% 
-  arrange(desc(sleep_total))
+  group_by(vore) %>% 
+  summarise(avg_sleep = mean(sleep_total)) %>% 
+  arrange(desc(avg_sleep))
 ```
 
 
-You can add multiple calls inside an `arrange()` statement. By adding two variables for instance, it will first sort based on the `order` and within those groups amongst `sleep_total`. 
-
-```{r}
-msleep %>% 
-  select(order, name, sleep_total) %>% 
-  arrange(order, desc(sleep_total))
-```
-
-If you already grouped your data, you can refer to that group within the `arrange()` statement as well by adding a `.by_group = TRUE` statement.
+If you already grouped your data, you can refer to that group within the `arrange()` statement as well by adding a `.by_group = TRUE` statement. This will sort by descending total sleep time, but within each group. 
 
 ```{r}
 msleep %>% 
@@ -63,3 +254,69 @@ msleep %>%
   arrange(desc(sleep_total), .by_group = TRUE)
 ```
 <br>
+
+
+
+<br><hr>
+
+
+## **Showing only part of your data**
+
+In some cases, you don't just want to show all rows available. Here are some nice shortcuts which can save time
+
+
+### The 5 lowest and highest values
+
+In some cases, you don't just want to show all rows available. You can filter of course, but there are some shortcuts for specific needs: if you want to select the highests 5 cases, you could combine an `arrange` call with a `head(n=5)`. Or you can use `top_n(5)` which will retain (unsorted) the 5 highest values.
+
+```{r}
+msleep %>% 
+  group_by(order) %>% 
+  summarise(average = mean(sleep_total)) %>% 
+  top_n(5)
+```
+
+
+The five lowest values can be found using `top_n(-5)`:
+
+```{r}
+msleep %>% 
+  group_by(order) %>% 
+  summarise(average = mean(sleep_total)) %>% 
+  top_n(-5)
+```
+
+
+
+```{r}
+msleep %>% 
+  nth(5)
+```
+
+
+
+sample
+Sample n rows from a 
+
+
+
+miscellaneious
+
+
+forcing full print out
+
+
+pull
+
+
+distinct
+Select distinct/unique rows
+Description
+Retain only unique/distinct rows from an input tbl.  This is similar to
+unique.data.frame()
+, but
+considerably faster.
+Usage
+distinct(.data, ..., .keep_all = FALSE)
+
+

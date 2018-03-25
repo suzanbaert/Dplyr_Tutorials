@@ -191,7 +191,7 @@ msleep %>%
 The `dplyr` package has a few powerful variants to filter across multiple columns in one go: 
 
 + `Filter_all` to filter across all columns  
-+ `Filter_if` and `filter_at` to filter across a few specified columns  
++ `Filter_if` and `filter_at` to filter across a few specified columns.  
   
 In these cases, there is a general syntax: first you specify which columns, then you mention the condition for the filter. In many cases you will need a `.` operator within the condition which refers to the values we are looking at.
 
