@@ -253,7 +253,7 @@ msleep %>%
   group_by(order) %>% 
   arrange(desc(sleep_total), .by_group = TRUE)
 ```
-<br>
+
 
 
 
@@ -273,7 +273,7 @@ In some cases, you don't just want to show all rows available. You can filter of
 msleep %>% 
   group_by(order) %>% 
   summarise(average = mean(sleep_total)) %>% 
-  top_n(5)
+  top_n(-5)
 ```
 
 
@@ -286,37 +286,24 @@ msleep %>%
   top_n(-5)
 ```
 
+You can use this function without having a `summarise()` call upfront, in which you most likely will have to spell out a variable to consider: 
 
 
 ```{r}
 msleep %>% 
-  nth(5)
+  top_n(5, sleep_total)
 ```
 
 
+### A random selection of rows
 
-sample
-Sample n rows from a 
-
-
-
-miscellaneious
+Using `sample_n()` you can sample a random selection of rows.  
+Alternative is `sample_frac()` allowing you to randomly select a fraction of rows (here 10%).
 
 
-forcing full print out
-
-
-pull
-
-
-distinct
-Select distinct/unique rows
-Description
-Retain only unique/distinct rows from an input tbl.  This is similar to
-unique.data.frame()
-, but
-considerably faster.
-Usage
-distinct(.data, ..., .keep_all = FALSE)
+```{r}
+msleep %>% 
+  sample_frac(.1)
+```
 
 
