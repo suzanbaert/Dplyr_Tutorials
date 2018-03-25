@@ -1,0 +1,25 @@
+---
+title: "Forcats"
+output: html_document
+---
+
+
+Next up forcats.
+
+but before that, there are 2 dplyr ones that can help:
+
+recode
+Recode values
+Description
+This is a vectorised version of
+switch()
+:  you can replace numeric values based on their position,
+and character values by their name.  This is an S3 generic:  dplyr provides methods for numeric,
+character,  and  factors.   For  logical vectors,  use
+if_else()
+.   For  more  complicated criteria,  use
+case_when()
+.
+Usage
+recode(.x, ..., .default = NULL, .missing = NULL)
+recode_factor(.x, ..., .default = NULL, .missing = NULL, .ordered = FALSE)
