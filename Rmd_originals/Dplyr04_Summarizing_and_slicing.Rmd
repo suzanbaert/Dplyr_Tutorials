@@ -4,7 +4,7 @@ output:
   md_document:
     toc: true
     toc_depth: 3
-    toc_float: true
+
 ---
 
 ```{r setup, include=FALSE}
@@ -26,12 +26,12 @@ Content:
 --
 
 
-Note: as per previous blog posts, I will present everything in the form of a pipe. In some of these cases this might not be necessary and it would be just as easy to write it as a single function, but as I want to present options that you can use in your pipes, all below examples will be piped.
+Note: as per previous blog posts, I will present everything in the form of a pipe. In some of the below cases, this might not be necessary and it would be just as easy to write it as a single function, but as I want to present options that you can use in your pipes, all below examples will be piped.
 
 <br>
 
 **The data**  
-As per previous blog posts, many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
+As per previous blog posts many of these functions truly shine when you have a lot of columns, but to make it easy on people to copy paste code and experiment, I'm using a built-in dataset:
 ```{r}
 library(dplyr)
 msleep <- ggplot2::msleep
@@ -42,7 +42,7 @@ glimpse(msleep)
 ## **Counting cases**
 
 
-The easiest way to know how observations you have for a specific variable, is to use `count()`. By adding the `sort = TRUE` argument immediately returns a sorted table with descending number of observations:
+The easiest way to know how observations you have for a specific variable, is to use `count()`. By adding the `sort = TRUE` argument, it immediately returns a sorted table with descending number of observations:
 
 ```{r}
 msleep %>% 
@@ -60,9 +60,9 @@ msleep %>%
 
 ### tally, add_tally and add_count
 
-If you're only interested in counting the total number of cases for a dataframe, you could use `tally()`, which behaves simarly to `nrow()`. The latter is shorter so I would still prefer that one.
+If you're only interested in counting the total number of cases for a dataframe, you could use `tally()`, which behaves simarly to `nrow()`. 
 
-You can't provide a group with `tally()`, it only works to count the overall number of observations. In fact, as is described in the `dplyr` documentation, `count()` is a short-hand for `group_by()` and `tally()`. 
+You can't provide a variable to count with `tally()`, it only works to count the overall number of observations. In fact, as is described in the `dplyr` documentation, `count()` is a short-hand for `group_by()` and `tally()`. 
 
 ```{r}
 msleep %>% 
@@ -121,13 +121,11 @@ msleep %>%
 The `summarise()` call works with nearly any aggregate function
 
 + `n()` - gives the number of observations
-+ `n_distinct(var)` - gives the numbers of unique values or `var` present
-+ `sum(var)`, 
++ `n_distinct(var)` - gives the numbers of unique values of `var`
++ `sum(var)`, `max(var)`, `min(var)`, ...
 + `mean(var)`, `median(var)`, `sd(var)`, `IQR(var)`, ... 
-+ 
++ ...
 
-
-any others I want to mention?
 
 
 ```{r}
@@ -179,7 +177,7 @@ The function `summarise_if()` requires two arguments:
 + Secondly, it needs information about how to summarise that data, which as above needs to be a function. If not a function, you can create a function on the fly using `funs()` or a tilde (see above).
 
 
-The sample code below will return the average of all numeric columns
+The sample code below will return the average of all numeric columns:
 
 
 ```{r}
@@ -188,7 +186,7 @@ msleep %>%
   summarise_if(is.numeric, mean, na.rm=TRUE)
 ```
 
-One of the downsides of the aggregate summarise functions is that you do not require a new column title. It therefore might not always be clear which this new value is. Luckily thanks to similar `rename_*()` functions, it only takes one line extra to rename them all:
+One of the downsides of the aggregate summarise functions is that you do not require a new column title. It therefore might not always be clear what this new value is (average? median? minimum?). Luckily thanks to similar `rename_*()` functions, it only takes one line extra to rename them all:
 
 ```{r}
 msleep %>% 
@@ -273,7 +271,7 @@ In some cases, you don't just want to show all rows available. You can filter of
 msleep %>% 
   group_by(order) %>% 
   summarise(average = mean(sleep_total)) %>% 
-  top_n(-5)
+  top_n(5)
 ```
 
 
@@ -286,12 +284,14 @@ msleep %>%
   top_n(-5)
 ```
 
-You can use this function without having a `summarise()` call upfront, in which you most likely will have to spell out a variable to consider: 
+If you have more than one column, you can add the variable you want it to use. The sample code will retain the 5 highest values of average_sleep.
 
 
 ```{r}
 msleep %>% 
-  top_n(5, sleep_total)
+  group_by(order) %>% 
+  summarise(average_sleep = mean(sleep_total), max_sleep = max(sleep_total)) %>% 
+  top_n(5, average_sleep)
 ```
 
 
@@ -304,6 +304,20 @@ Alternative is `sample_frac()` allowing you to randomly select a fraction of row
 ```{r}
 msleep %>% 
   sample_frac(.1)
+```
+
+
+
+### A user-defined slice of rows
+
+The `head()` call will standard show the first 6 rows, which can be modified by adding a n-argument: `head(n=10)`. 
+Similarly `tail()` will show the final 6 rows, which again can be modified by adding a n-argument.
+If you want to slice somewhere in the middle, you can use `slice()`. The sample code will show rows 50 to 55.
+
+
+```{r}
+msleep %>% 
+  slice(50:55)
 ```
 
 
