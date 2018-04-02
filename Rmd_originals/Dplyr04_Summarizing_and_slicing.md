@@ -1,7 +1,10 @@
 -   [Data Wrangling Part 4: Summarizing and slicing your
     data](#data-wrangling-part-4-summarizing-and-slicing-your-data)
-    -   [**Counting cases**](#counting-cases)
-        -   [tally, add\_tally and
+    -   [**Counting cases and adding
+        counts**](#counting-cases-and-adding-counts)
+        -   [Counting the number of
+            observations](#counting-the-number-of-observations)
+        -   [Tally, add\_tally and
             add\_count](#tally-add_tally-and-add_count)
     -   [**Summarising data**](#summarising-data)
     -   [**Summarise\_all()**](#summarise_all)
@@ -20,7 +23,7 @@
 Data Wrangling Part 4: Summarizing and slicing your data
 ========================================================
 
-This is the fourh blog post in a series of dplyr tutorials:
+This is the fourth blog post in a series of dplyr tutorials:
 
 -   [Part 1: Basic to Advanced Ways to Select
     Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
@@ -66,10 +69,12 @@ and experiment, I'm using a built-in dataset:
 
 <br>
 
-**Counting cases**
-------------------
+**Counting cases and adding counts**
+------------------------------------
 
-The easiest way to know how observations you have for a specific
+### Counting the number of observations
+
+The easiest way to know how many observations you have for a specific
 variable, is to use `count()`. By adding the `sort = TRUE` argument, it
 immediately returns a sorted table with descending number of
 observations:
@@ -121,7 +126,7 @@ below is counting by order and vore:
     ## 10 Hyracoidea     herbi       2
     ## # ... with 22 more rows
 
-### tally, add\_tally and add\_count
+### Tally, add\_tally and add\_count
 
 If you're only interested in counting the total number of cases for a
 dataframe, you could use `tally()`, which behaves simarly to `nrow()`.
@@ -140,8 +145,8 @@ and `tally()`.
     ## 1    83
 
 More interesting is the `add_tally()` function which automatically adds
-a column with the overall number of observations. This is will be the
-same as `mutate(n = n())`.
+a column with the overall number of observations. This would be the same
+as `mutate(n = n())`.
 
     msleep %>% 
       select(1:3) %>% 
@@ -164,10 +169,10 @@ same as `mutate(n = n())`.
 
 Even more interesting is `add_count()` which takes a variable as
 argument, and adds a column which the number of observations. This saves
-the combination of grouping and mutating.
+the combination of grouping, mutating and ungrouping again.
 
     msleep %>% 
-      select(1:3) %>% 
+      select(name:vore) %>% 
       add_count(vore)
 
     ## # A tibble: 83 x 4
@@ -228,7 +233,8 @@ specify by which variable(s) you want to divide the data using
     ## 4 omni       20   10.9     18.0
     ## 5 <NA>        7   10.2     13.7
 
-The `summarise()` call works with nearly any aggregate function
+The `summarise()` call works with nearly any aggregate function, and
+allows for additional arithmetics:
 
 -   `n()` - gives the number of observations
 -   `n_distinct(var)` - gives the numbers of unique values of `var`
@@ -236,20 +242,21 @@ The `summarise()` call works with nearly any aggregate function
 -   `mean(var)`, `median(var)`, `sd(var)`, `IQR(var)`, ...
 -   ...
 
-<!-- -->
+The sample code will average the sleep\_total and divide by 24, to get
+the amount of sleep as a fraction of a day.
 
     msleep %>% 
       group_by(vore) %>% 
-      summarise(average_minutes = mean(sleep_total)*60)
+      summarise(avg_sleep_day = mean(sleep_total)/24)
 
     ## # A tibble: 5 x 2
-    ##   vore    average_minutes
-    ##   <chr>             <dbl>
-    ## 1 carni               623
-    ## 2 herbi               571
-    ## 3 insecti             896
-    ## 4 omni                656
-    ## 5 <NA>                611
+    ##   vore    avg_sleep_day
+    ##   <chr>           <dbl>
+    ## 1 carni           0.432
+    ## 2 herbi           0.396
+    ## 3 insecti         0.622
+    ## 4 omni            0.455
+    ## 5 <NA>            0.424
 
 <br>
 <hr>
@@ -258,11 +265,14 @@ The `summarise()` call works with nearly any aggregate function
 
 Similarly to the filter, select and mutate functions, `summarise()`
 comes with three additional functions for doing things to multiple
-columns in one go: + `summarise_all()` will summarise all columns based
-on your further instructions + `summarise_if()` requires a function that
-returns a boolean. If that is true, the summary instructions will be
-followed + `sumarise_at()` requires you to specify columns inside a
-`vars()` argument for which the summary will be done.
+columns in one go:
+
+-   `summarise_all()` will summarise all columns based on your further
+    instructions
+-   `summarise_if()` requires a function that returns a boolean. If that
+    is true, the summary instructions will be followed
+-   `sumarise_at()` requires you to specify columns inside a `vars()`
+    argument for which the summary will be done.
 
 ### **Summarise\_all**
 
@@ -375,7 +385,8 @@ The function `summarise_at()` also requires two arguments:
     create a function on the fly using `funs()` or a tilde (see above).
 
 The sample code below will return the average of all columns which
-contain the word 'sleep'.
+contain the word 'sleep', and also rename them to "avg\_*var*" for
+clarity.
 
     msleep %>%
       group_by(vore) %>% 
@@ -396,11 +407,10 @@ contain the word 'sleep'.
 **Arranging rows**
 ------------------
 
-It's useful if your summary tables are arranged. This is when the
-`arrange()` function comes in. The default format for numeric variables
-is to sort ascending, but you can add the `desc()` function in your call
-to change the default. For string variables, it will sort
-alphabetically.
+It's useful if your summary tables are arranged, which is `arrange()`'s
+job. The default format for numeric variables is to sort ascending, but
+you can add the `desc()` function in your call to change the default.
+For string variables, it will sort alphabetically.
 
 Sorting numeric variables:  
 `arrange(sleep_total)` will arrange it from short sleepers to long
@@ -521,14 +531,14 @@ fraction of rows (here 10%).
     ## # A tibble: 8 x 11
     ##   name   genus  vore  order conservation sleep_total sleep_rem sleep_cycle
     ##   <chr>  <chr>  <chr> <chr> <chr>              <dbl>     <dbl>       <dbl>
-    ## 1 Human  Homo   omni  Prim~ <NA>                8.00     1.90        1.50 
-    ## 2 Pig    Sus    omni  Arti~ domesticated        9.10     2.40        0.500
-    ## 3 Mount~ Aplod~ herbi Rode~ nt                 14.4      2.40       NA    
-    ## 4 Rabbit Oryct~ herbi Lago~ domesticated        8.40     0.900       0.417
-    ## 5 Cheet~ Acino~ carni Carn~ lc                 12.1     NA          NA    
-    ## 6 Grivet Cerco~ omni  Prim~ lc                 10.0      0.700      NA    
-    ## 7 Lion   Panth~ carni Carn~ vu                 13.5     NA          NA    
-    ## 8 Owl m~ Aotus  omni  Prim~ <NA>               17.0      1.80       NA    
+    ## 1 "Vole~ Micro~ herbi Rode~ <NA>               12.8      NA         NA    
+    ## 2 Big b~ Eptes~ inse~ Chir~ lc                 19.7       3.90       0.117
+    ## 3 Squir~ Saimi~ omni  Prim~ <NA>                9.60      1.40      NA    
+    ## 4 Chinc~ Chinc~ herbi Rode~ domesticated       12.5       1.50       0.117
+    ## 5 Giant~ Priod~ inse~ Cing~ en                 18.1       6.10      NA    
+    ## 6 Potto  Perod~ omni  Prim~ lc                 11.0      NA         NA    
+    ## 7 Lion   Panth~ carni Carn~ vu                 13.5      NA         NA    
+    ## 8 North~ Callo~ carni Carn~ vu                  8.70      1.40       0.383
     ## # ... with 3 more variables: awake <dbl>, brainwt <dbl>, bodywt <dbl>
 
 ### A user-defined slice of rows

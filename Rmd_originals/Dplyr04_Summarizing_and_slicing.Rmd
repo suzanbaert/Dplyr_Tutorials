@@ -14,7 +14,7 @@ knitr::opts_chunk$set(message = FALSE, error = FALSE, warning=FALSE)
 
 # Data Wrangling Part 4: Summarizing and slicing your data 
 
-This is the fourh blog post in a series of dplyr tutorials:
+This is the fourth blog post in a series of dplyr tutorials:
 
 * [Part 1: Basic to Advanced Ways to Select Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
 * [Part 2: Transforming your columns into the right shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
@@ -39,10 +39,12 @@ glimpse(msleep)
 ```
 <br>
 
-## **Counting cases**
+## **Counting cases and adding counts**
+
+### Counting the number of observations
 
 
-The easiest way to know how observations you have for a specific variable, is to use `count()`. By adding the `sort = TRUE` argument, it immediately returns a sorted table with descending number of observations:
+The easiest way to know how many observations you have for a specific variable, is to use `count()`. By adding the `sort = TRUE` argument, it immediately returns a sorted table with descending number of observations:
 
 ```{r}
 msleep %>% 
@@ -58,7 +60,7 @@ msleep %>%
 ```
 
 
-### tally, add_tally and add_count
+### Tally, add_tally and add_count
 
 If you're only interested in counting the total number of cases for a dataframe, you could use `tally()`, which behaves simarly to `nrow()`. 
 
@@ -69,7 +71,7 @@ msleep %>%
   tally()
 ```
 
-More interesting is the `add_tally()` function which automatically adds a column with the overall number of observations. This is will be the same as `mutate(n = n())`.
+More interesting is the `add_tally()` function which automatically adds a column with the overall number of observations. This would be the same as `mutate(n = n())`.
 
 
 ```{r}
@@ -79,12 +81,12 @@ msleep %>%
 ```
 
 
-Even more interesting is `add_count()` which takes a variable as argument, and adds a column which the number of observations. This saves the combination of grouping and mutating.
+Even more interesting is `add_count()` which takes a variable as argument, and adds a column which the number of observations. This saves the combination of grouping, mutating and ungrouping again.
 
 
 ```{r}
 msleep %>% 
-  select(1:3) %>% 
+  select(name:vore) %>% 
   add_count(vore)
 ```
 
@@ -94,7 +96,9 @@ msleep %>%
 
 <br><hr>
 
+
 ## **Summarising data**
+
 
 *To note: for some functions, `dplyr` foresees both an American English and a UK English variant. The function `summarise()` is the equivalent of `summarize()`.*
 
@@ -118,7 +122,7 @@ msleep %>%
 
 
 
-The `summarise()` call works with nearly any aggregate function
+The `summarise()` call works with nearly any aggregate function, and allows for additional arithmetics:
 
 + `n()` - gives the number of observations
 + `n_distinct(var)` - gives the numbers of unique values of `var`
@@ -126,25 +130,31 @@ The `summarise()` call works with nearly any aggregate function
 + `mean(var)`, `median(var)`, `sd(var)`, `IQR(var)`, ... 
 + ...
 
+The sample code will average the sleep_total and divide by 24, to get the amount of sleep as a fraction of a day.
 
 
 ```{r}
 msleep %>% 
   group_by(vore) %>% 
-  summarise(average_minutes = mean(sleep_total)*60)
+  summarise(avg_sleep_day = mean(sleep_total)/24)
 ```
 
 <br><hr>
 
+
 ## **Summarise_all()**
 
+
 Similarly to the filter, select and mutate functions, `summarise()` comes with three additional functions for doing things to multiple columns in one go:
+
 + `summarise_all()` will summarise all columns based on your further instructions
 + `summarise_if()` requires a function that returns a boolean. If that is true, the summary instructions will be followed
 + `sumarise_at()` requires you to specify columns inside a `vars()` argument for which the summary will be done.
 
 
+
 ### **Summarise_all**
+
 
 The function `summarise_all()` requires a function as argument, which it will apply to all columns. The sample code first selects all numeric columns, and then calculates the mean for each of them. I had to add the `na.rm = TRUE` argument to ignore `NA` values. 
 
@@ -207,7 +217,7 @@ The function `summarise_at()` also requires two arguments:
 + Secondly, it needs information about how to summarise that data, which as above needs to be a function. If not a function, you can create a function on the fly using `funs()` or a tilde (see above).
 
 
-The sample code below will return the average of all columns which contain the word 'sleep'.
+The sample code below will return the average of all columns which contain the word 'sleep', and also rename them to "avg_*var*" for clarity.
 
 ```{r}
 msleep %>%
@@ -230,7 +240,7 @@ msleep %>%
 ```
 
 
-It's useful if your summary tables are arranged. This is when the `arrange()` function comes in. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
+It's useful if your summary tables are arranged, which is `arrange()`'s job. The default format for numeric variables is to sort ascending, but you can add the `desc()` function in your call to change the default. For string variables, it will sort alphabetically.
 
 Sorting numeric variables:  
 `arrange(sleep_total)` will arrange it from short sleepers to long sleepers. In this case I wanted the opposite:
