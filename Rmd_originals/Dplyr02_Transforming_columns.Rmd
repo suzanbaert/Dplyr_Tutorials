@@ -194,7 +194,7 @@ msleep %>%
   mutate_at(vars(contains("sleep")), ~(.*60)) 
 ```
 
-###  **Changing multiple columns names**
+###  **Changing column names after mutation**
 
 With a singular `mutate()` statement, you immediately have the option to change the columns name. In the above example for instance it is confusing that the sleep columns are in a different unit, you can change that by calling a rename function:
 
