@@ -60,7 +60,7 @@ msleep %>%
 ```
 
 
-### Tally, add_tally and add_count
+### Adding the number of observations in a column
 
 If you're only interested in counting the total number of cases for a dataframe, you could use `tally()`, which behaves simarly to `nrow()`. 
 
@@ -142,7 +142,7 @@ msleep %>%
 <br><hr>
 
 
-## **Summarise_all()**
+## **Summarise all**
 
 
 Similarly to the filter, select and mutate functions, `summarise()` comes with three additional functions for doing things to multiple columns in one go:
@@ -153,7 +153,7 @@ Similarly to the filter, select and mutate functions, `summarise()` comes with t
 
 
 
-### **Summarise_all**
+### **Summarise all**
 
 
 The function `summarise_all()` requires a function as argument, which it will apply to all columns. The sample code first selects all numeric columns, and then calculates the mean for each of them. I had to add the `na.rm = TRUE` argument to ignore `NA` values. 
@@ -178,7 +178,7 @@ msleep %>%
 <br>
 
 
-### **Summarise_if**
+### **Summarise if**
 
 The function `summarise_if()` requires two arguments: 
 
@@ -208,7 +208,7 @@ msleep %>%
 
 <br>
 
-### **Summarise_at**
+### **Summarise at**
 
 The function `summarise_at()` also requires two arguments: 
 

@@ -1,16 +1,21 @@
--   [Data Wrangling Part 4: Summarizing and slicing your
-    data](#data-wrangling-part-4-summarizing-and-slicing-your-data)
+This is the fourth blog post in a series of dplyr tutorials. In this tutorial we will summarizing our data: i) adding columns with the number of observations via `add_tally()` and `add_count`, ii) creating summaries using `summarise()` and it's `summarise_all()`, `_if()` and `_at()` variants, and iii) pulling the maximum and minimum row values.
+
+
+
+Content:
+
+-   
     -   [**Counting cases and adding
         counts**](#counting-cases-and-adding-counts)
         -   [Counting the number of
             observations](#counting-the-number-of-observations)
-        -   [Tally, add\_tally and
-            add\_count](#tally-add_tally-and-add_count)
+        -   [Adding the number of observations in a
+            column](#adding-the-number-of-observations-in-a-column)
     -   [**Summarising data**](#summarising-data)
-    -   [**Summarise\_all()**](#summarise_all)
-        -   [**Summarise\_all**](#summarise_all-1)
-        -   [**Summarise\_if**](#summarise_if)
-        -   [**Summarise\_at**](#summarise_at)
+    -   [**Summarise all**](#summarise-all)
+        -   [**Summarise all**](#summarise-all-1)
+        -   [**Summarise if**](#summarise-if)
+        -   [**Summarise at**](#summarise-at)
     -   [**Arranging rows**](#arranging-rows)
     -   [**Showing only part of your
         data**](#showing-only-part-of-your-data)
@@ -19,20 +24,6 @@
         -   [A random selection of rows](#a-random-selection-of-rows)
         -   [A user-defined slice of
             rows](#a-user-defined-slice-of-rows)
-
-Data Wrangling Part 4: Summarizing and slicing your data
-========================================================
-
-This is the fourth blog post in a series of dplyr tutorials:
-
--   [Part 1: Basic to Advanced Ways to Select
-    Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
--   [Part 2: Transforming your columns into the right
-    shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
--   [Part 3: Filtering
-    rows](https://suzan.rbind.io/2018/02/dplyr-tutorial-3/))
-
-Content:
 
 --
 
@@ -79,7 +70,7 @@ variable, is to use `count()`. By adding the `sort = TRUE` argument, it
 immediately returns a sorted table with descending number of
 observations:
 
-    msleep %>% 
+    msleep %>%
       count(order, sort = TRUE)
 
     ## # A tibble: 19 x 2
@@ -108,7 +99,7 @@ observations:
 You can add multiple variables to a `count()` statement; the example
 below is counting by order and vore:
 
-    msleep %>% 
+    msleep %>%
       count(order, vore, sort = TRUE)
 
     ## # A tibble: 32 x 3
@@ -126,7 +117,7 @@ below is counting by order and vore:
     ## 10 Hyracoidea     herbi       2
     ## # ... with 22 more rows
 
-### Tally, add\_tally and add\_count
+### Adding the number of observations in a column
 
 If you're only interested in counting the total number of cases for a
 dataframe, you could use `tally()`, which behaves simarly to `nrow()`.
@@ -136,7 +127,7 @@ count the overall number of observations. In fact, as is described in
 the `dplyr` documentation, `count()` is a short-hand for `group_by()`
 and `tally()`.
 
-    msleep %>% 
+    msleep %>%
       tally()
 
     ## # A tibble: 1 x 1
@@ -148,8 +139,8 @@ More interesting is the `add_tally()` function which automatically adds
 a column with the overall number of observations. This would be the same
 as `mutate(n = n())`.
 
-    msleep %>% 
-      select(1:3) %>% 
+    msleep %>%
+      select(1:3) %>%
       add_tally()
 
     ## # A tibble: 83 x 4
@@ -171,8 +162,8 @@ Even more interesting is `add_count()` which takes a variable as
 argument, and adds a column which the number of observations. This saves
 the combination of grouping, mutating and ungrouping again.
 
-    msleep %>% 
-      select(name:vore) %>% 
+    msleep %>%
+      select(name:vore) %>%
       add_count(vore)
 
     ## # A tibble: 83 x 4
@@ -206,7 +197,7 @@ you just add your new column name, and after the equal sign the
 mathematics of what needs to happen: `column_name = function(variable)`.
 You can add multiple summary functions behind each other.
 
-    msleep %>% 
+    msleep %>%
       summarise(n = n(), average = mean(sleep_total), maximum = max(sleep_total))
 
     ## # A tibble: 1 x 3
@@ -220,8 +211,8 @@ specify by which variable(s) you want to divide the data using
 `group_by()`. You can add one of more variables as arguments in
 `group_by()`.
 
-    msleep %>% 
-      group_by(vore) %>% 
+    msleep %>%
+      group_by(vore) %>%
       summarise(n = n(), average = mean(sleep_total), maximum = max(sleep_total))
 
     ## # A tibble: 5 x 4
@@ -242,11 +233,11 @@ allows for additional arithmetics:
 -   `mean(var)`, `median(var)`, `sd(var)`, `IQR(var)`, ...
 -   ...
 
-The sample code will average the sleep\_total and divide by 24, to get
+The sample code will average sleep\_total and divide by 24, to get
 the amount of sleep as a fraction of a day.
 
-    msleep %>% 
-      group_by(vore) %>% 
+    msleep %>%
+      group_by(vore) %>%
       summarise(avg_sleep_day = mean(sleep_total)/24)
 
     ## # A tibble: 5 x 2
@@ -260,8 +251,8 @@ the amount of sleep as a fraction of a day.
 
 <br>
 <hr>
-**Summarise\_all()**
---------------------
+**Summarise all**
+-----------------
 
 Similarly to the filter, select and mutate functions, `summarise()`
 comes with three additional functions for doing things to multiple
@@ -274,16 +265,16 @@ columns in one go:
 -   `sumarise_at()` requires you to specify columns inside a `vars()`
     argument for which the summary will be done.
 
-### **Summarise\_all**
+### **Summarise all**
 
 The function `summarise_all()` requires a function as argument, which it
 will apply to all columns. The sample code first selects all numeric
 columns, and then calculates the mean for each of them. I had to add the
 `na.rm = TRUE` argument to ignore `NA` values.
 
-    msleep %>% 
-      group_by(vore) %>% 
-      summarise_all(mean, na.rm=TRUE) 
+    msleep %>%
+      group_by(vore) %>%
+      summarise_all(mean, na.rm=TRUE)
 
     ## # A tibble: 5 x 11
     ##   vore     name genus order conservation sleep_total sleep_rem sleep_cycle
@@ -303,8 +294,8 @@ fly can be made by either using `funs(mean(., na.rm = TRUE) + 5)`, or
 via a tilde: `~mean(., na.rm = TRUE) + 5`.
 
     msleep %>%
-      group_by(vore) %>% 
-      summarise_all(~mean(., na.rm = TRUE) + 5) 
+      group_by(vore) %>%
+      summarise_all(~mean(., na.rm = TRUE) + 5)
 
     ## # A tibble: 5 x 11
     ##   vore     name genus order conservation sleep_total sleep_rem sleep_cycle
@@ -318,7 +309,7 @@ via a tilde: `~mean(., na.rm = TRUE) + 5`.
 
 <br>
 
-### **Summarise\_if**
+### **Summarise if**
 
 The function `summarise_if()` requires two arguments:
 
@@ -334,8 +325,8 @@ The function `summarise_if()` requires two arguments:
 
 The sample code below will return the average of all numeric columns:
 
-    msleep %>% 
-      group_by(vore) %>% 
+    msleep %>%
+      group_by(vore) %>%
       summarise_if(is.numeric, mean, na.rm=TRUE)
 
     ## # A tibble: 5 x 7
@@ -353,24 +344,24 @@ what this new value is (average? median? minimum?). Luckily thanks to
 similar `rename_*()` functions, it only takes one line extra to rename
 them all:
 
-    msleep %>% 
-      group_by(vore) %>% 
-      summarise_if(is.numeric, mean, na.rm=TRUE) %>% 
+    msleep %>%
+      group_by(vore) %>%
+      summarise_if(is.numeric, mean, na.rm=TRUE) %>%
       rename_if(is.numeric, ~paste0("avg_", .))
 
     ## # A tibble: 5 x 7
     ##   vore    avg_sleep_total avg_sleep_rem avg_sleep_cycle avg_awake
     ##   <chr>             <dbl>         <dbl>           <dbl>     <dbl>
-    ## 1 carni             10.4           2.29           0.373     13.6 
-    ## 2 herbi              9.51          1.37           0.418     14.5 
+    ## 1 carni             10.4           2.29           0.373     13.6
+    ## 2 herbi              9.51          1.37           0.418     14.5
     ## 3 insecti           14.9           3.52           0.161      9.06
-    ## 4 omni              10.9           1.96           0.592     13.1 
-    ## 5 <NA>              10.2           1.88           0.183     13.8 
+    ## 4 omni              10.9           1.96           0.592     13.1
+    ## 5 <NA>              10.2           1.88           0.183     13.8
     ## # ... with 2 more variables: avg_brainwt <dbl>, avg_bodywt <dbl>
 
 <br>
 
-### **Summarise\_at**
+### **Summarise at**
 
 The function `summarise_at()` also requires two arguments:
 
@@ -389,8 +380,8 @@ contain the word 'sleep', and also rename them to "avg\_*var*" for
 clarity.
 
     msleep %>%
-      group_by(vore) %>% 
-      summarise_at(vars(contains("sleep")), mean, na.rm=TRUE) %>% 
+      group_by(vore) %>%
+      summarise_at(vars(contains("sleep")), mean, na.rm=TRUE) %>%
       rename_at(vars(contains("sleep")), ~paste0("avg_", .))
 
     ## # A tibble: 5 x 4
@@ -416,43 +407,43 @@ Sorting numeric variables:
 `arrange(sleep_total)` will arrange it from short sleepers to long
 sleepers. In this case I wanted the opposite:
 
-    msleep %>% 
-      group_by(vore) %>% 
-      summarise(avg_sleep = mean(sleep_total)) %>% 
+    msleep %>%
+      group_by(vore) %>%
+      summarise(avg_sleep = mean(sleep_total)) %>%
       arrange(desc(avg_sleep))
 
     ## # A tibble: 5 x 2
     ##   vore    avg_sleep
     ##   <chr>       <dbl>
-    ## 1 insecti     14.9 
-    ## 2 omni        10.9 
-    ## 3 carni       10.4 
-    ## 4 <NA>        10.2 
+    ## 1 insecti     14.9
+    ## 2 omni        10.9
+    ## 3 carni       10.4
+    ## 4 <NA>        10.2
     ## 5 herbi        9.51
 
 If you already grouped your data, you can refer to that group within the
 `arrange()` statement as well by adding a `.by_group = TRUE` statement.
 This will sort by descending total sleep time, but within each group.
 
-    msleep %>% 
-      select(order, name, sleep_total) %>% 
-      group_by(order) %>% 
+    msleep %>%
+      select(order, name, sleep_total) %>%
+      group_by(order) %>%
       arrange(desc(sleep_total), .by_group = TRUE)
 
     ## # A tibble: 83 x 3
     ## # Groups:   order [19]
     ##    order        name         sleep_total
     ##    <chr>        <chr>              <dbl>
-    ##  1 Afrosoricida Tenrec             15.6 
+    ##  1 Afrosoricida Tenrec             15.6
     ##  2 Artiodactyla Pig                 9.10
     ##  3 Artiodactyla Goat                5.30
     ##  4 Artiodactyla Cow                 4.00
     ##  5 Artiodactyla Sheep               3.80
     ##  6 Artiodactyla Roe deer            3.00
     ##  7 Artiodactyla Giraffe             1.90
-    ##  8 Carnivora    Tiger              15.8 
-    ##  9 Carnivora    Lion               13.5 
-    ## 10 Carnivora    Domestic cat       12.5 
+    ##  8 Carnivora    Tiger              15.8
+    ##  9 Carnivora    Lion               13.5
+    ## 10 Carnivora    Domestic cat       12.5
     ## # ... with 73 more rows
 
 <br>
@@ -471,9 +462,9 @@ you want to select the highests 5 cases, you could combine an `arrange`
 call with a `head(n=5)`. Or you can use `top_n(5)` which will retain
 (unsorted) the 5 highest values.
 
-    msleep %>% 
-      group_by(order) %>% 
-      summarise(average = mean(sleep_total)) %>% 
+    msleep %>%
+      group_by(order) %>%
+      summarise(average = mean(sleep_total)) %>%
       top_n(5)
 
     ## # A tibble: 5 x 2
@@ -487,9 +478,9 @@ call with a `head(n=5)`. Or you can use `top_n(5)` which will retain
 
 The five lowest values can be found using `top_n(-5)`:
 
-    msleep %>% 
-      group_by(order) %>% 
-      summarise(average = mean(sleep_total)) %>% 
+    msleep %>%
+      group_by(order) %>%
+      summarise(average = mean(sleep_total)) %>%
       top_n(-5)
 
     ## # A tibble: 5 x 2
@@ -505,9 +496,9 @@ If you have more than one column, you can add the variable you want it
 to use. The sample code will retain the 5 highest values of
 average\_sleep.
 
-    msleep %>% 
-      group_by(order) %>% 
-      summarise(average_sleep = mean(sleep_total), max_sleep = max(sleep_total)) %>% 
+    msleep %>%
+      group_by(order) %>%
+      summarise(average_sleep = mean(sleep_total), max_sleep = max(sleep_total)) %>%
       top_n(5, average_sleep)
 
     ## # A tibble: 5 x 3
@@ -525,20 +516,20 @@ Using `sample_n()` you can sample a random selection of rows.
 Alternative is `sample_frac()` allowing you to randomly select a
 fraction of rows (here 10%).
 
-    msleep %>% 
+    msleep %>%
       sample_frac(.1)
 
     ## # A tibble: 8 x 11
-    ##   name   genus  vore  order conservation sleep_total sleep_rem sleep_cycle
-    ##   <chr>  <chr>  <chr> <chr> <chr>              <dbl>     <dbl>       <dbl>
-    ## 1 "Vole~ Micro~ herbi Rode~ <NA>               12.8      NA         NA    
-    ## 2 Big b~ Eptes~ inse~ Chir~ lc                 19.7       3.90       0.117
-    ## 3 Squir~ Saimi~ omni  Prim~ <NA>                9.60      1.40      NA    
-    ## 4 Chinc~ Chinc~ herbi Rode~ domesticated       12.5       1.50       0.117
-    ## 5 Giant~ Priod~ inse~ Cing~ en                 18.1       6.10      NA    
-    ## 6 Potto  Perod~ omni  Prim~ lc                 11.0      NA         NA    
-    ## 7 Lion   Panth~ carni Carn~ vu                 13.5      NA         NA    
-    ## 8 North~ Callo~ carni Carn~ vu                  8.70      1.40       0.383
+    ##   name    genus vore  order conservation sleep_total sleep_rem sleep_cycle
+    ##   <chr>   <chr> <chr> <chr> <chr>              <dbl>     <dbl>       <dbl>
+    ## 1 Africa~ Rhab~ omni  Rode~ <NA>                8.70    NA          NA    
+    ## 2 Giraffe Gira~ herbi Arti~ cd                  1.90     0.400      NA    
+    ## 3 Northe~ Onyc~ carni Rode~ lc                 14.5     NA          NA    
+    ## 4 Squirr~ Saim~ omni  Prim~ <NA>                9.60     1.40       NA    
+    ## 5 Three-~ Brad~ herbi Pilo~ <NA>               14.4      2.20        0.767
+    ## 6 Galago  Gala~ omni  Prim~ <NA>                9.80     1.10        0.550
+    ## 7 "Vole " Micr~ herbi Rode~ <NA>               12.8     NA          NA    
+    ## 8 Caspia~ Phoca carni Carn~ vu                  3.50     0.400      NA    
     ## # ... with 3 more variables: awake <dbl>, brainwt <dbl>, bodywt <dbl>
 
 ### A user-defined slice of rows
@@ -549,16 +540,25 @@ show the final 6 rows, which again can be modified by adding a
 n-argument. If you want to slice somewhere in the middle, you can use
 `slice()`. The sample code will show rows 50 to 55.
 
-    msleep %>% 
+    msleep %>%
       slice(50:55)
 
     ## # A tibble: 6 x 11
     ##   name   genus  vore  order conservation sleep_total sleep_rem sleep_cycle
     ##   <chr>  <chr>  <chr> <chr> <chr>              <dbl>     <dbl>       <dbl>
-    ## 1 Chimp~ Pan    omni  Prim~ <NA>                9.70      1.40       1.42 
+    ## 1 Chimp~ Pan    omni  Prim~ <NA>                9.70      1.40       1.42
     ## 2 Tiger  Panth~ carni Carn~ en                 15.8      NA         NA    
     ## 3 Jaguar Panth~ carni Carn~ nt                 10.4      NA         NA    
     ## 4 Lion   Panth~ carni Carn~ vu                 13.5      NA         NA    
     ## 5 Baboon Papio  omni  Prim~ <NA>                9.40      1.00       0.667
     ## 6 Deser~ Parae~ <NA>  Erin~ lc                 10.3       2.70      NA    
     ## # ... with 3 more variables: awake <dbl>, brainwt <dbl>, bodywt <dbl>
+
+
+<br><hr>
+
+## Want to learn more?
+
++ [Part 1: Basic to Advanced Ways to Select      Columns](https://suzanbaert.netlify.com/2018/01/dplyr-tutorial-1/)
++ [Part 2: Transforming your columns into the right         shape](https://suzan.rbind.io/2018/02/dplyr-tutorial-2/)
++ [Part 3: Filtering         rows](https://suzan.rbind.io/2018/02/dplyr-tutorial-3/)
