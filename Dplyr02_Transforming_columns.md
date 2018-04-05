@@ -1,19 +1,15 @@
-# 2. Transforming your columns into the right shape 
+# 2. Transforming your columns into the right shape
 
-This is a second post in a series of dplyr functions. The first one
-covered basic and advanced ways to select, rename and reorder
-columns, and can be found here.
-
-This second one covers tools to manipulate your columns to get them the
+This is a second post in a series of dplyr functions, and covers tools to manipulate your columns to get them the
 way you want them.  
 
 -   [**Mutating columns: the basics**](#mutating-columns-the-basics)
 -   [**Mutating several columns at
     once**](#mutating-several-columns-at-once)
-    -   [**Mutate\_all**](#mutate_all)
-    -   [**Mutate\_if**](#mutate_if)
-    -   [**Mutate\_at to change specifc
-        columns**](#mutate_at-to-change-specifc-columns)
+    -   [**Mutate all**](#mutate-all)
+    -   [**Mutate if**](#mutate-if)
+    -   [**Mutate at to change specifc
+        columns**](#mutate-at-to-change-specifc-columns)
 -   [**Working with discrete columns**](#working-with-discrete-columns)
     -   [**Recoding discrete columns**](#recoding-discrete-columns)
     -   [**Creating new discrete column (two
@@ -100,17 +96,51 @@ versus the animal with the least sleep.
     ## # A tibble: 83 x 4
     ##    name                       sleep_total sleep_total_vs_AVG sleep_total_~
     ##    <chr>                            <dbl>              <dbl>         <dbl>
-    ##  1 Cheetah                          12.1               1.70          10.2 
-    ##  2 Owl monkey                       17.0               6.60          15.1 
-    ##  3 Mountain beaver                  14.4               4.00          12.5 
-    ##  4 Greater short-tailed shrew       14.9               4.50          13.0 
+    ##  1 Cheetah                          12.1               1.70          10.2
+    ##  2 Owl monkey                       17.0               6.60          15.1
+    ##  3 Mountain beaver                  14.4               4.00          12.5
+    ##  4 Greater short-tailed shrew       14.9               4.50          13.0
     ##  5 Cow                               4.00             -6.40           2.10
-    ##  6 Three-toed sloth                 14.4               4.00          12.5 
+    ##  6 Three-toed sloth                 14.4               4.00          12.5
     ##  7 Northern fur seal                 8.70             -1.70           6.80
     ##  8 Vesper mouse                      7.00             -3.40           5.10
     ##  9 Dog                              10.1              -0.300          8.20
     ## 10 Roe deer                          3.00             -7.40           1.10
     ## # ... with 73 more rows
+
+  In the below comments, Steve asked about aggregate functions across
+  columns. These functions by nature will want to summarise a column (like
+  shown above), if however you want to `sum()` or `mean()` across columns,
+  you might run into errors or absurd answers. In these cases you either
+  can revert to actually spelling out the arithmetics:
+  `mutate(average = (sleep_rem + sleep_cycle) / 2)` or you have to add a
+  special instruction to the pipe that it should perform these aggregate
+  functions not on the entire column, but by row:
+
+      *#alternative to using the actual arithmetics:*
+      msleep %>%
+        select(name, contains("sleep")) %>%
+        rowwise() %>%
+        mutate(avg = mean(c(sleep_rem, sleep_cycle)))
+
+      ## Source: local data frame [83 x 5]
+      ## Groups: <by row>
+      ##
+      ## # A tibble: 83 x 5
+      ##    name                       sleep_total sleep_rem sleep_cycle    avg
+      ##    <chr>                            <dbl>     <dbl>       <dbl>  <dbl>
+      ##  1 Cheetah                          12.1     NA          NA     NA    
+      ##  2 Owl monkey                       17.0      1.80       NA     NA    
+      ##  3 Mountain beaver                  14.4      2.40       NA     NA    
+      ##  4 Greater short-tailed shrew       14.9      2.30        0.133  1.22
+      ##  5 Cow                               4.00     0.700       0.667  0.683
+      ##  6 Three-toed sloth                 14.4      2.20        0.767  1.48
+      ##  7 Northern fur seal                 8.70     1.40        0.383  0.892
+      ##  8 Vesper mouse                      7.00    NA          NA     NA    
+      ##  9 Dog                              10.1      2.90        0.333  1.62
+      ## 10 Roe deer                          3.00    NA          NA     NA    
+      ## # ... with 73 more rows
+
 
 The `ifelse()` function deserves a special mention because it is
 particularly useful if you don't want to mutate the whole column in the
@@ -133,7 +163,7 @@ the code won't change for anything below 4.
     ##    <chr>              <dbl>    <dbl>
     ##  1 African elephant   5.71    NA    
     ##  2 Asian elephant     4.60    NA    
-    ##  3 Human              1.32     1.32 
+    ##  3 Human              1.32     1.32
     ##  4 Horse              0.655    0.655
     ##  5 Chimpanzee         0.440    0.440
     ##  6 Cow                0.423    0.423
@@ -173,37 +203,57 @@ it lower case.
 ------------------------------------
 
 This is where the magic really happens. Just like with the `select()`
-functions in part 1, there are variants to `mutate()`: `mutate_all()`,
-`mutate_if()`, `mutate_at()`.
+functions in part 1, there are variants to `mutate()`:
 
-### **Mutate\_all**
+-   `mutate_all()` will mutate all columns based on your further
+    instructions
+-   `mutate_if()` first requires a function that returns a boolean to
+    select columns. If that is true, the mutate instructions will be
+    followed on those variables.
+-   `mutate_at()` requires you to specify columns inside a `vars()`
+    argument for which the mutation will be done.
+
+### **Mutate all**
 
 The `mutate_all()` version is the easiest to understand, and pretty
-nifty when cleaning your data.  
+nifty when cleaning your data. You just pass an action (in the form of a
+function) that you want to apply across all columns.
+
 Something easy to start with: turning all the data to lower case:
 
     msleep %>%
       mutate_all(tolower)
 
     ## # A tibble: 83 x 11
-    ##    name     genus  vore  order  conse~ slee~ slee~ slee~ awake brai~ body~
-    ##    <chr>    <chr>  <chr> <chr>  <chr>  <chr> <chr> <chr> <chr> <chr> <chr>
-    ##  1 cheetah  acino~ carni carni~ lc     12.1  <NA>  <NA>  11.9  <NA>  50   
-    ##  2 owl mon~ aotus  omni  prima~ <NA>   17    1.8   <NA>  7     0.01~ 0.48 
-    ##  3 mountai~ aplod~ herbi roden~ nt     14.4  2.4   <NA>  9.6   <NA>  1.35 
-    ##  4 greater~ blari~ omni  soric~ lc     14.9  2.3   0.13~ 9.1   0.00~ 0.019
-    ##  5 cow      bos    herbi artio~ domes~ 4     0.7   0.66~ 20    0.423 600  
-    ##  6 three-t~ brady~ herbi pilosa <NA>   14.4  2.2   0.76~ 9.6   <NA>  3.85 
-    ##  7 norther~ callo~ carni carni~ vu     8.7   1.4   0.38~ 15.3  <NA>  20.49
-    ##  8 vesper ~ calom~ <NA>  roden~ <NA>   7     <NA>  <NA>  17    <NA>  0.045
-    ##  9 dog      canis  carni carni~ domes~ 10.1  2.9   0.33~ 13.9  0.07  14   
-    ## 10 roe deer capre~ herbi artio~ lc     3     <NA>  <NA>  21    0.09~ 14.8 
-    ## # ... with 73 more rows
+    ##    name   genus vore  order conservation sleep_total sleep_rem sleep_cycle
+    ##    <chr>  <chr> <chr> <chr> <chr>        <chr>       <chr>     <chr>      
+    ##  1 cheet~ acin~ carni carn~ lc           12.1        <NA>      <NA>       
+    ##  2 owl m~ aotus omni  prim~ <NA>         17          1.8       <NA>       
+    ##  3 mount~ aplo~ herbi rode~ nt           14.4        2.4       <NA>       
+    ##  4 great~ blar~ omni  sori~ lc           14.9        2.3       0.133333333
+    ##  5 cow    bos   herbi arti~ domesticated 4           0.7       0.666666667
+    ##  6 three~ brad~ herbi pilo~ <NA>         14.4        2.2       0.766666667
+    ##  7 north~ call~ carni carn~ vu           8.7         1.4       0.383333333
+    ##  8 vespe~ calo~ <NA>  rode~ <NA>         7           <NA>      <NA>       
+    ##  9 dog    canis carni carn~ domesticated 10.1        2.9       0.333333333
+    ## 10 roe d~ capr~ herbi arti~ lc           3           <NA>      <NA>       
+    ## # ... with 73 more rows, and 3 more variables: awake <chr>, brainwt <chr>,
+    ## #   bodywt <chr>
 
-But I've also used it to trim whitespaces into an entire table without
-issues using: `mutate_all(str_trim)`.  
-Or when scraping the web, I've often had plenty off empty spaces and
-many `\n` signs across the data.
+
+The mutating action needs to be a function: in many cases you can pass
+the function name without the brackets, but in some cases you need
+arguments or you want to combine elements. In this case you have some
+options: either you make a function upfront (useful if it's longer), or
+you make a function on the fly by wrapping it inside `funs()` or via a
+tilde.
+
+The below paste mutation requires a function on the fly. You can
+either use `~paste(., "  /n  ")` or
+`funs(paste(., "  /n  "))`. When making a function on the
+fly, you usually need a way to refer to the value you are replacing: which is what the `.` symbolizes.
+
+For instance, after scraping the web, you often have tables with too many spaces and extra `\n` signs, but you can clean it all in one go.
 
 I'm first going to use `mutate_all()` to screw things up:
 
@@ -213,8 +263,8 @@ I'm first going to use `mutate_all()` to screw things up:
     msleep_ohno[,1:4]
 
     ## # A tibble: 83 x 4
-    ##    name                                genus                vore    order 
-    ##    <chr>                               <chr>                <chr>   <chr> 
+    ##    name                                genus                vore    order
+    ##    <chr>                               <chr>                <chr>   <chr>
     ##  1 "Cheetah   /n  "                    "Acinonyx   /n  "    "carni~ "Carn~
     ##  2 "Owl monkey   /n  "                 "Aotus   /n  "       "omni ~ "Prim~
     ##  3 "Mountain beaver   /n  "            "Aplodontia   /n  "  "herbi~ "Rode~
@@ -229,8 +279,8 @@ I'm first going to use `mutate_all()` to screw things up:
 
 Let's clean it up again:  
 In this code I am assume that not all values show the same amount of
-extra white spaces as is often the case with parsed data: it frst
-removes all extra white spaces and then removes any `/n`.
+extra white spaces as is often the case with parsed data: it first
+removes any `/n`, and then trims any additional white spaces:
 
     msleep_corr <- msleep_ohno %>%
       mutate_all(~str_replace_all(., "/n", "")) %>%
@@ -253,8 +303,9 @@ removes all extra white spaces and then removes any `/n`.
     ## 10 Roe deer                   Capreolus   herbi Artiodactyla
     ## # ... with 73 more rows
 
-Obviously you can use any regex inside `mutate_all()` as well. The
-sample code will remove any vowels:
+
+
+The sample code will remove any vowels:
 
     msleep %>%
       select(name:sleep_total) %>%
@@ -275,7 +326,7 @@ sample code will remove any vowels:
     ## 10 R dr               Cprls   hrb   Artdctyl lc           3          
     ## # ... with 73 more rows
 
-### **Mutate\_if**
+### **Mutate if**
 
 Not all cleaning functions can be done with `mutate_all()`. Trying to
 round your data will lead to an error if you have both numerical and
@@ -287,60 +338,76 @@ character columns.
 `Error in mutate_impl(.data, dots) : Evaluation error: non-numeric argument to mathematical function.`
 
 In these cases we have to add the condition that columns need to be
-numeric before giving `round()` instructions:  
-To note: if you want to round to a few digits you will need to make a
-function on the fly by using a tilde: such as
-`mutate_if(is.numeric, ~round(. ,2))`.
+numeric before giving `round()` instructions:
+
+By using `mutate_if()` we need two arguments inside a pipe:
+
+-   First it needs information about the columns you want it to
+    consider. This information needs to be a function that returns a
+    boolean value. The easiest cases are functions like `is.numeric`,
+    `is.integer`, `is.double`, `is.logical`, `is.factor`,
+    `lubridate::is.POSIXt` or `lubridate::is.Date`.
+
+-   Secondly, it needs instructions about the mutation in the form of a
+    function. If needed, use a tilde or `funs()` before (see above).
+
+<!-- -->
 
     msleep %>%
       select(name, sleep_total:bodywt) %>%
       mutate_if(is.numeric, round)
 
     ## # A tibble: 83 x 7
-    ##    name                       sleep_total sleep~ sleep~ awake brai~ bodywt
-    ##    <chr>                            <dbl>  <dbl>  <dbl> <dbl> <dbl>  <dbl>
-    ##  1 Cheetah                          12.0   NA     NA    12.0     NA  50.0 
-    ##  2 Owl monkey                       17.0    2.00  NA     7.00     0   0   
-    ##  3 Mountain beaver                  14.0    2.00  NA    10.0     NA   1.00
-    ##  4 Greater short-tailed shrew       15.0    2.00   0     9.00     0   0   
-    ##  5 Cow                               4.00   1.00   1.00 20.0      0 600   
-    ##  6 Three-toed sloth                 14.0    2.00   1.00 10.0     NA   4.00
-    ##  7 Northern fur seal                 9.00   1.00   0    15.0     NA  20.0 
-    ##  8 Vesper mouse                      7.00  NA     NA    17.0     NA   0   
-    ##  9 Dog                              10.0    3.00   0    14.0      0  14.0 
-    ## 10 Roe deer                          3.00  NA     NA    21.0      0  15.0 
+    ##    name             sleep_total sleep_rem sleep_cycle awake brainwt bodywt
+    ##    <chr>                  <dbl>     <dbl>       <dbl> <dbl>   <dbl>  <dbl>
+    ##  1 Cheetah                12.0      NA          NA    12.0       NA  50.0
+    ##  2 Owl monkey             17.0       2.00       NA     7.00       0   0   
+    ##  3 Mountain beaver        14.0       2.00       NA    10.0       NA   1.00
+    ##  4 Greater short-t~       15.0       2.00        0     9.00       0   0   
+    ##  5 Cow                     4.00      1.00        1.00 20.0        0 600   
+    ##  6 Three-toed sloth       14.0       2.00        1.00 10.0       NA   4.00
+    ##  7 Northern fur se~        9.00      1.00        0    15.0       NA  20.0
+    ##  8 Vesper mouse            7.00     NA          NA    17.0       NA   0   
+    ##  9 Dog                    10.0       3.00        0    14.0        0  14.0
+    ## 10 Roe deer                3.00     NA          NA    21.0        0  15.0
     ## # ... with 73 more rows
 
-### **Mutate\_at to change specifc columns**
+### **Mutate at to change specifc columns**
 
-All columns containing the word sleep are in hours. If I want those in
-minutes, I can use `mutate_at()`. To indicate that I want the condition
-to be based on the column name I can use `vars(contains("sleep"))`.
-Inside `vars()` you can use any of the `select()`helpers.  
-The second argument of `mutate_at()` needs to be function, so I have to
-wrap my calculation instructions with a tilde to make a function on the
-fly.
+By using `mutate_at()` we need two arguments inside a pipe:
 
+-   First it needs information about the columns you want it to
+    consider. In this case you can wrap any selection of columns (using
+    all the options possible inside a `select()` function) and wrap it
+    inside `vars()`.
+
+-   Secondly, it needs instructions about the mutation in the form of a
+    function. If needed, use a tilde or `funs()` before (see above).
+
+All sleep-measuring columns are in hours. If I want those in minutes, I
+can use `mutate_at()` and wrap all 'sleep' containing columns inside
+`vars()`. Secondly, I make a function in the fly to multiple every value
+by 60.  
 The sample code shows that in this case all `sleep` columns have been
 changed into minutes, but `awake` did not.
 
     msleep %>%
       select(name, sleep_total:awake) %>%
-      mutate_at(vars(contains("sleep")), ~(.*60)) 
+      mutate_at(vars(contains("sleep")), ~(.*60))
 
     ## # A tibble: 83 x 5
     ##    name                       sleep_total sleep_rem sleep_cycle awake
     ##    <chr>                            <dbl>     <dbl>       <dbl> <dbl>
-    ##  1 Cheetah                            726      NA         NA    11.9 
+    ##  1 Cheetah                            726      NA         NA    11.9
     ##  2 Owl monkey                        1020     108         NA     7.00
     ##  3 Mountain beaver                    864     144         NA     9.60
     ##  4 Greater short-tailed shrew         894     138          8.00  9.10
-    ##  5 Cow                                240      42.0       40.0  20.0 
+    ##  5 Cow                                240      42.0       40.0  20.0
     ##  6 Three-toed sloth                   864     132         46.0   9.60
-    ##  7 Northern fur seal                  522      84.0       23.0  15.3 
-    ##  8 Vesper mouse                       420      NA         NA    17.0 
-    ##  9 Dog                                606     174         20.0  13.9 
-    ## 10 Roe deer                           180      NA         NA    21.0 
+    ##  7 Northern fur seal                  522      84.0       23.0  15.3
+    ##  8 Vesper mouse                       420      NA         NA    17.0
+    ##  9 Dog                                606     174         20.0  13.9
+    ## 10 Roe deer                           180      NA         NA    21.0
     ## # ... with 73 more rows
 
 <br>
@@ -408,7 +475,7 @@ discrete "long" or "short" sleeper.
 
     msleep %>%
       select(name, sleep_total) %>%
-      mutate(sleep_time = ifelse(sleep_total > 10, "long", "short")) 
+      mutate(sleep_time = ifelse(sleep_total > 10, "long", "short"))
 
     ## # A tibble: 83 x 3
     ##    name                       sleep_total sleep_time
@@ -450,8 +517,8 @@ a levels vector upfront to avoid cluttering the piple too much.
         sleep_total > 10 ~ "long",
         sleep_total > 7 ~ "limited",
         TRUE ~ "short")) %>%
-      mutate(sleep_total_discr = factor(sleep_total_discr, 
-                                        levels = c("short", "limited", 
+      mutate(sleep_total_discr = factor(sleep_total_discr,
+                                        levels = c("short", "limited",
                                                    "long", "very long")))
 
     ## # A tibble: 83 x 3
@@ -519,7 +586,7 @@ The sample code shows seperating into two columns based on '=' as a
 separator.
 
     (conservation_table <- conservation_expl %>%
-      separate(`conservation abbreviation`, 
+      separate(`conservation abbreviation`,
                into = c("abbreviation", "description"), sep = " = "))
 
     ## # A tibble: 11 x 2
@@ -621,15 +688,15 @@ end. In the sample code I'm deselecting the column `name`.
     ## # A tibble: 249 x 3
     ##    name                       sleep_measure  time
     ##    <chr>                      <chr>         <dbl>
-    ##  1 Cheetah                    sleep_total   12.1 
-    ##  2 Owl monkey                 sleep_total   17.0 
-    ##  3 Mountain beaver            sleep_total   14.4 
-    ##  4 Greater short-tailed shrew sleep_total   14.9 
+    ##  1 Cheetah                    sleep_total   12.1
+    ##  2 Owl monkey                 sleep_total   17.0
+    ##  3 Mountain beaver            sleep_total   14.4
+    ##  4 Greater short-tailed shrew sleep_total   14.9
     ##  5 Cow                        sleep_total    4.00
-    ##  6 Three-toed sloth           sleep_total   14.4 
+    ##  6 Three-toed sloth           sleep_total   14.4
     ##  7 Northern fur seal          sleep_total    8.70
     ##  8 Vesper mouse               sleep_total    7.00
-    ##  9 Dog                        sleep_total   10.1 
+    ##  9 Dog                        sleep_total   10.1
     ## 10 Roe deer                   sleep_total    3.00
     ## # ... with 239 more rows
 
@@ -647,15 +714,15 @@ which will make the new column an ordered factor.
     ## # A tibble: 249 x 3
     ##    name                       sleep_measure  time
     ##    <chr>                      <fctr>        <dbl>
-    ##  1 Cheetah                    sleep_total   12.1 
-    ##  2 Owl monkey                 sleep_total   17.0 
-    ##  3 Mountain beaver            sleep_total   14.4 
-    ##  4 Greater short-tailed shrew sleep_total   14.9 
+    ##  1 Cheetah                    sleep_total   12.1
+    ##  2 Owl monkey                 sleep_total   17.0
+    ##  3 Mountain beaver            sleep_total   14.4
+    ##  4 Greater short-tailed shrew sleep_total   14.9
     ##  5 Cow                        sleep_total    4.00
-    ##  6 Three-toed sloth           sleep_total   14.4 
+    ##  6 Three-toed sloth           sleep_total   14.4
     ##  7 Northern fur seal          sleep_total    8.70
     ##  8 Vesper mouse               sleep_total    7.00
-    ##  9 Dog                        sleep_total   10.1 
+    ##  9 Dog                        sleep_total   10.1
     ## 10 Roe deer                   sleep_total    3.00
     ## # ... with 239 more rows
 

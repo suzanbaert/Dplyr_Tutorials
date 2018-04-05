@@ -49,6 +49,18 @@ msleep %>%
 ```
 
 
+In the below comments, Steve asked about aggregate functions across columns. These functions by nature will want to summarise a column (like shown above), if however you want to `sum()` or `mean()` across columns, you might run into errors or absurd answers. In these cases you either can revert to actually spelling out the arithmetics: `mutate(average = (sleep_rem + sleep_cycle) / 2)` or you have to add a special instruction to the pipe that it should perform these aggregate functions not on the entire column, but by row: 
+
+```{r}
+#alternative to using the actual arithmetics:
+msleep %>% 
+  select(name, contains("sleep")) %>% 
+  rowwise() %>% 
+  mutate(avg = mean(c(sleep_rem, sleep_cycle)))
+```
+
+
+
 The `ifelse()` function deserves a special mention because it is particularly useful if you don't want to mutate the whole column in the same way. With `ifelse()`, you first specify a logical statement, afterwards what needs to happen if the statement returns `TRUE`, and lastly what needs to happen if it's  `FALSE`.  
   
 Imagine that we have a database with two large values which we assume are typos or measurement errors, and we want to exclude them. The below code will take any `brainwt` value above 4 and return NA. In this case, the code won't change for anything below 4.  
@@ -77,11 +89,18 @@ msleep %>%
 
 ## **Mutating several columns at once**
 
-This is where the magic really happens. Just like with the `select()` functions in part 1, there are variants to `mutate()`: `mutate_all()`, `mutate_if()`, `mutate_at()`.  
+This is where the magic really happens. Just like with the `select()` functions in part 1, there are variants to `mutate()`: 
 
-### **Mutate_all**
++ `mutate_all()` will mutate all columns based on your further instructions
++ `mutate_if()` first requires a function that returns a boolean to select columns. If that is true, the mutate instructions will be followed on those variables.
++ `mutate_at()` requires you to specify columns inside a `vars()` argument for which the mutation will be done.
 
-The `mutate_all()` version is the easiest to understand, and pretty nifty when cleaning your data.  
+
+
+### **Mutate all**
+
+The `mutate_all()` version is the easiest to understand, and pretty nifty when cleaning your data. You just pass an action (in the form of a function) that you want to apply across all columns.
+
 Something easy to start with: turning all the data to lower case:
 
 
@@ -91,8 +110,19 @@ msleep %>%
 ```
 
 
-But I've also used it to trim whitespaces into an entire table without issues using: `mutate_all(str_trim)`.  
-Or when scraping the web, I've often had plenty off empty spaces and many `\n` signs across the data. 
+The mutating action needs to be a function: in many cases you can pass
+the function name without the brackets, but in some cases you need
+arguments or you want to combine elements. In this case you have some
+options: either you make a function upfront (useful if it's longer), or
+you make a function on the fly by wrapping it inside `funs()` or via a
+tilde.
+
+The below paste mutation requires a function on the fly. You can
+either use `~paste(., "  /n  ")` or
+`funs(paste(., "  /n  "))`. When making a function on the
+fly, you usually need a way to refer to the value you are replacing: which is what the `.` symbolizes.
+
+For instance, after scraping the web, you often have tables with too many spaces and extra `\n` signs, but you can clean it all in one go.
 
 I'm first going to use `mutate_all()` to screw things up:
 ```{r}
@@ -102,8 +132,10 @@ msleep_ohno <- msleep %>%
 msleep_ohno[,1:4]
 ```
 
-Let's clean it up again:  
-In this code I am assume that not all values show the same amount of extra white spaces as is often the case with parsed data: it frst removes all extra white spaces and then removes any `/n`.
+Let's clean it up again:   
+In this code I am assume that not all values show the same amount of
+extra white spaces as is often the case with parsed data: it first
+removes any `/n`, and then trims any additional white spaces:
 ```{r}
 msleep_corr <- msleep_ohno %>%
   mutate_all(~str_replace_all(., "/n", "")) %>%
@@ -113,7 +145,13 @@ msleep_corr[,1:4]
 ```
 
 
-Obviously you can use any regex inside `mutate_all()` as well.
+
+
+The mutating action needs to be a function: in many cases you can pass the function name without the brackets, but in some cases you need arguments, or you want to combine elements in which case you have some options: either you makea function upfront (useful if it's longer), or you make a function on the fly by wrapping it inside `funs()` or via a tilde. 
+
+The below regex-based mutation requires a function on the fly. You can either use `~str_replace_all(., "[aeiou]", "")` or `funs(str_replace_all(., "[aeiou]", ""))`. When making a function on the fly, you need to refer to the value you are replacing: which is what the `.` refers to. 
+
+
 The sample code will remove any vowels:
 
 ```{r}
@@ -123,7 +161,7 @@ msleep %>%
 ```
 
 
-### **Mutate_if**
+### **Mutate if**
 
 Not all cleaning functions can be done with `mutate_all()`. Trying to round your data will lead to an error if you have both numerical and character columns. 
 
@@ -135,8 +173,14 @@ msleep %>%
 `Error in mutate_impl(.data, dots) : Evaluation error: non-numeric argument to mathematical function.` 
 
 
-In these cases we have to add the condition that columns need to be numeric before giving `round()` instructions:  
-To note: if you want to round to a few digits you will need to make a function on the fly by using a tilde: such as `mutate_if(is.numeric, ~round(. ,2))`.  
+In these cases we have to add the condition that columns need to be numeric before giving `round()` instructions: 
+
+By using `mutate_if()` we need two arguments inside a pipe:
+
++ First it needs information about the columns you want it to consider. This information needs to be a function that returns a boolean value. The easiest cases are functions like `is.numeric`, `is.integer`, `is.double`, `is.logical`, `is.factor`, `lubridate::is.POSIXt` or `lubridate::is.Date`.
+
++ Secondly, it needs instructions about the mutation in the form of a function. If needed, use a tilde or `funs()` before (see above).
+
 
 ```{r}
 msleep %>%
@@ -146,11 +190,16 @@ msleep %>%
 
 
 
-###  **Mutate_at to change specifc columns**
+###  **Mutate at to change specifc columns**
 
-All columns containing the word sleep are in hours. If I want those in minutes, I can use `mutate_at()`. To indicate that I want the condition to be based on the column name I can use `vars(contains("sleep"))`. Inside `vars()` you can use any of the `select()`helpers.  
-The second argument of `mutate_at()` needs to be function, so I have to wrap my calculation instructions with a tilde to make a function on the fly.  
+By using `mutate_at()` we need two arguments inside a pipe:
 
++ First it needs information about the columns you want it to consider. In this case you can wrap any selection of columns (using all the options possible inside a `select()` function) and wrap it inside `vars()`.
+
++ Secondly, it needs instructions about the mutation in the form of a function. If needed, use a tilde or `funs()` before (see above).
+
+
+All sleep-measuring columns are in hours. If I want those in minutes, I can use `mutate_at()` and wrap all 'sleep' containing columns inside `vars()`. Secondly, I make a function in the fly to multiple every value by 60.  
 The sample code shows that in this case all `sleep` columns have been changed into minutes, but `awake` did not.
 ```{r}
 msleep %>%
