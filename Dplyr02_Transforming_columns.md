@@ -8,8 +8,10 @@ way you want them.
     once**](#mutating-several-columns-at-once)
     -   [**Mutate all**](#mutate-all)
     -   [**Mutate if**](#mutate-if)
-    -   [**Mutate at to change specifc
-        columns**](#mutate-at-to-change-specifc-columns)
+    -   [**Mutate at to change specific
+        columns**](#mutate-at-to-change-specific-columns)
+    -   [**Changing multiple columns
+        names**](#changing-multiple-columns-names)
 -   [**Working with discrete columns**](#working-with-discrete-columns)
     -   [**Recoding discrete columns**](#recoding-discrete-columns)
     -   [**Creating new discrete column (two
@@ -94,53 +96,51 @@ versus the animal with the least sleep.
              sleep_total_vs_MIN = sleep_total - min(sleep_total))
 
     ## # A tibble: 83 x 4
-    ##    name                       sleep_total sleep_total_vs_AVG sleep_total_~
-    ##    <chr>                            <dbl>              <dbl>         <dbl>
-    ##  1 Cheetah                          12.1               1.70          10.2
-    ##  2 Owl monkey                       17.0               6.60          15.1
-    ##  3 Mountain beaver                  14.4               4.00          12.5
-    ##  4 Greater short-tailed shrew       14.9               4.50          13.0
-    ##  5 Cow                               4.00             -6.40           2.10
-    ##  6 Three-toed sloth                 14.4               4.00          12.5
-    ##  7 Northern fur seal                 8.70             -1.70           6.80
-    ##  8 Vesper mouse                      7.00             -3.40           5.10
-    ##  9 Dog                              10.1              -0.300          8.20
-    ## 10 Roe deer                          3.00             -7.40           1.10
+    ##    name                   sleep_total sleep_total_vs_AVG sleep_total_vs_M~
+    ##    <chr>                        <dbl>              <dbl>             <dbl>
+    ##  1 Cheetah                      12.1               1.70              10.2
+    ##  2 Owl monkey                   17.0               6.60              15.1
+    ##  3 Mountain beaver              14.4               4.00              12.5
+    ##  4 Greater short-tailed ~       14.9               4.50              13.0
+    ##  5 Cow                           4.00             -6.40               2.10
+    ##  6 Three-toed sloth             14.4               4.00              12.5
+    ##  7 Northern fur seal             8.70             -1.70               6.80
+    ##  8 Vesper mouse                  7.00             -3.40               5.10
+    ##  9 Dog                          10.1              -0.300              8.20
+    ## 10 Roe deer                      3.00             -7.40               1.10
     ## # ... with 73 more rows
 
-  In the below comments, Steve asked about aggregate functions across
-  columns. These functions by nature will want to summarise a column (like
-  shown above), if however you want to `sum()` or `mean()` across columns,
-  you might run into errors or absurd answers. In these cases you either
-  can revert to actually spelling out the arithmetics:
-  `mutate(average = (sleep_rem + sleep_cycle) / 2)` or you have to add a
-  special instruction to the pipe that it should perform these aggregate
-  functions not on the entire column, but by row:
+In the below comments, Steve asked about aggregate functions across
+columns. These functions by nature will want to summarise a column (like
+shown above), if however you want to `sum()` or `mean()` across columns,
+you might run into errors or absurd answers. In these cases you can either revert to actually spelling out the arithmetics:
+`mutate(average = (sleep_rem + sleep_cycle) / 2)` or you have to add a
+special instruction to the pipe that it should perform these aggregate
+functions not on the entire column, but by row:
 
-      *#alternative to using the actual arithmetics:*
-      msleep %>%
-        select(name, contains("sleep")) %>%
-        rowwise() %>%
-        mutate(avg = mean(c(sleep_rem, sleep_cycle)))
+    #alternative to using the actual arithmetics:
+    msleep %>%
+      select(name, contains("sleep")) %>%
+      rowwise() %>%
+      mutate(avg = mean(c(sleep_rem, sleep_cycle)))
 
-      ## Source: local data frame [83 x 5]
-      ## Groups: <by row>
-      ##
-      ## # A tibble: 83 x 5
-      ##    name                       sleep_total sleep_rem sleep_cycle    avg
-      ##    <chr>                            <dbl>     <dbl>       <dbl>  <dbl>
-      ##  1 Cheetah                          12.1     NA          NA     NA    
-      ##  2 Owl monkey                       17.0      1.80       NA     NA    
-      ##  3 Mountain beaver                  14.4      2.40       NA     NA    
-      ##  4 Greater short-tailed shrew       14.9      2.30        0.133  1.22
-      ##  5 Cow                               4.00     0.700       0.667  0.683
-      ##  6 Three-toed sloth                 14.4      2.20        0.767  1.48
-      ##  7 Northern fur seal                 8.70     1.40        0.383  0.892
-      ##  8 Vesper mouse                      7.00    NA          NA     NA    
-      ##  9 Dog                              10.1      2.90        0.333  1.62
-      ## 10 Roe deer                          3.00    NA          NA     NA    
-      ## # ... with 73 more rows
-
+    ## Source: local data frame [83 x 5]
+    ## Groups: <by row>
+    ##
+    ## # A tibble: 83 x 5
+    ##    name                       sleep_total sleep_rem sleep_cycle    avg
+    ##    <chr>                            <dbl>     <dbl>       <dbl>  <dbl>
+    ##  1 Cheetah                          12.1     NA          NA     NA    
+    ##  2 Owl monkey                       17.0      1.80       NA     NA    
+    ##  3 Mountain beaver                  14.4      2.40       NA     NA    
+    ##  4 Greater short-tailed shrew       14.9      2.30        0.133  1.22
+    ##  5 Cow                               4.00     0.700       0.667  0.683
+    ##  6 Three-toed sloth                 14.4      2.20        0.767  1.48
+    ##  7 Northern fur seal                 8.70     1.40        0.383  0.892
+    ##  8 Vesper mouse                      7.00    NA          NA     NA    
+    ##  9 Dog                              10.1      2.90        0.333  1.62
+    ## 10 Roe deer                          3.00    NA          NA     NA    
+    ## # ... with 73 more rows
 
 The `ifelse()` function deserves a special mention because it is
 particularly useful if you don't want to mutate the whole column in the
@@ -240,20 +240,20 @@ Something easy to start with: turning all the data to lower case:
     ## # ... with 73 more rows, and 3 more variables: awake <chr>, brainwt <chr>,
     ## #   bodywt <chr>
 
-
 The mutating action needs to be a function: in many cases you can pass
 the function name without the brackets, but in some cases you need
 arguments or you want to combine elements. In this case you have some
-options: either you make a function upfront (useful if it's longer), or
+options: either you make a function up front (useful if it's longer), or
 you make a function on the fly by wrapping it inside `funs()` or via a
 tilde.
 
-The below paste mutation requires a function on the fly. You can
-either use `~paste(., "  /n  ")` or
-`funs(paste(., "  /n  "))`. When making a function on the
-fly, you usually need a way to refer to the value you are replacing: which is what the `.` symbolizes.
+The below paste mutation requires a function on the fly. You can either
+use `~paste(., "  /n  ")` or `funs(paste(., "  /n  "))`. When making a
+function on the fly, you usually need a way to refer to the value you
+are replacing: which is what the `.` symbolizes.
 
-For instance, after scraping the web, you often have tables with too many spaces and extra `\n` signs, but you can clean it all in one go.
+For instance, after scraping the web, you often have tables with too
+many spaces and extra `\n` signs, but you can clean it all in one go.
 
 I'm first going to use `mutate_all()` to screw things up:
 
@@ -303,29 +303,6 @@ removes any `/n`, and then trims any additional white spaces:
     ## 10 Roe deer                   Capreolus   herbi Artiodactyla
     ## # ... with 73 more rows
 
-
-
-The sample code will remove any vowels:
-
-    msleep %>%
-      select(name:sleep_total) %>%
-      mutate_all(~str_replace_all(., "[aeiou]", ""))
-
-    ## # A tibble: 83 x 6
-    ##    name               genus   vore  order    conservation sleep_total
-    ##    <chr>              <chr>   <chr> <chr>    <chr>        <chr>      
-    ##  1 Chth               Acnnyx  crn   Crnvr    lc           12.1       
-    ##  2 Owl mnky           Ats     mn    Prmts    <NA>         17         
-    ##  3 Mntn bvr           Apldnt  hrb   Rdnt     nt           14.4       
-    ##  4 Grtr shrt-tld shrw Blrn    mn    Srcmrph  lc           14.9       
-    ##  5 Cw                 Bs      hrb   Artdctyl dmstctd      4          
-    ##  6 Thr-td slth        Brdyps  hrb   Pls      <NA>         14.4       
-    ##  7 Nrthrn fr sl       Cllrhns crn   Crnvr    v            8.7        
-    ##  8 Vspr ms            Clmys   <NA>  Rdnt     <NA>         7          
-    ##  9 Dg                 Cns     crn   Crnvr    dmstctd      10.1       
-    ## 10 R dr               Cprls   hrb   Artdctyl lc           3          
-    ## # ... with 73 more rows
-
 ### **Mutate if**
 
 Not all cleaning functions can be done with `mutate_all()`. Trying to
@@ -372,7 +349,7 @@ By using `mutate_if()` we need two arguments inside a pipe:
     ## 10 Roe deer                3.00     NA          NA    21.0        0  15.0
     ## # ... with 73 more rows
 
-### **Mutate at to change specifc columns**
+### **Mutate at to change specific columns**
 
 By using `mutate_at()` we need two arguments inside a pipe:
 
@@ -410,8 +387,62 @@ changed into minutes, but `awake` did not.
     ## 10 Roe deer                           180      NA         NA    21.0
     ## # ... with 73 more rows
 
-<br>
+### **Changing multiple columns names**
 
+With a singular `mutate()` statement, you immediately have the option to
+change the columns name. In the above example for instance it is
+confusing that the sleep columns are in a different unit, you can change
+that by calling a rename function:
+
+    msleep %>%
+      select(name, sleep_total:awake) %>%
+      mutate_at(vars(contains("sleep")), ~(.*60)) %>%
+      rename_at(vars(contains("sleep")), ~paste0(.,"_min"))
+
+    ## # A tibble: 83 x 5
+    ##    name                sleep_total_min sleep_rem_min sleep_cycle_min awake
+    ##    <chr>                         <dbl>         <dbl>           <dbl> <dbl>
+    ##  1 Cheetah                         726          NA             NA    11.9
+    ##  2 Owl monkey                     1020         108             NA     7.00
+    ##  3 Mountain beaver                 864         144             NA     9.60
+    ##  4 Greater short-tail~             894         138              8.00  9.10
+    ##  5 Cow                             240          42.0           40.0  20.0
+    ##  6 Three-toed sloth                864         132             46.0   9.60
+    ##  7 Northern fur seal               522          84.0           23.0  15.3
+    ##  8 Vesper mouse                    420          NA             NA    17.0
+    ##  9 Dog                             606         174             20.0  13.9
+    ## 10 Roe deer                        180          NA             NA    21.0
+    ## # ... with 73 more rows
+
+Or as [Tomas
+McManus](https://twitter.com/TomasMcManus1/status/981187099649912832)
+pointed out: you can assign new column names inside `funs()`. In the
+main difference between both options: the `funs()` version is one line
+of code less, but columns will be added, rather than replaced. Depending
+on your scenario, either can be useful.
+
+    msleep %>%
+      select(name, sleep_total:awake) %>%
+      mutate_at(vars(contains("sleep")), funs(min = .*60))
+
+    ## # A tibble: 83 x 8
+    ##    name            sleep_total sleep_rem sleep_cycle awake sleep_total_min
+    ##    <chr>                 <dbl>     <dbl>       <dbl> <dbl>           <dbl>
+    ##  1 Cheetah               12.1     NA          NA     11.9              726
+    ##  2 Owl monkey            17.0      1.80       NA      7.00            1020
+    ##  3 Mountain beaver       14.4      2.40       NA      9.60             864
+    ##  4 Greater short-~       14.9      2.30        0.133  9.10             894
+    ##  5 Cow                    4.00     0.700       0.667 20.0              240
+    ##  6 Three-toed slo~       14.4      2.20        0.767  9.60             864
+    ##  7 Northern fur s~        8.70     1.40        0.383 15.3              522
+    ##  8 Vesper mouse           7.00    NA          NA     17.0              420
+    ##  9 Dog                   10.1      2.90        0.333 13.9              606
+    ## 10 Roe deer               3.00    NA          NA     21.0              180
+    ## # ... with 73 more rows, and 2 more variables: sleep_rem_min <dbl>,
+    ## #   sleep_cycle_min <dbl>
+
+<br>
+<hr>
 **Working with discrete columns**
 ---------------------------------
 
@@ -523,7 +554,7 @@ a levels vector upfront to avoid cluttering the piple too much.
 
     ## # A tibble: 83 x 3
     ##    name                       sleep_total sleep_total_discr
-    ##    <chr>                            <dbl> <fctr>           
+    ##    <chr>                            <dbl> <fct>            
     ##  1 Cheetah                          12.1  long             
     ##  2 Owl monkey                       17.0  very long        
     ##  3 Mountain beaver                  14.4  very long        
@@ -556,7 +587,7 @@ be used for grouping across columns:
     ## 4 other           30
 
 <br>
-
+<hr>
 **Splitting and merging columns**
 ---------------------------------
 
@@ -713,7 +744,7 @@ which will make the new column an ordered factor.
 
     ## # A tibble: 249 x 3
     ##    name                       sleep_measure  time
-    ##    <chr>                      <fctr>        <dbl>
+    ##    <chr>                      <fct>         <dbl>
     ##  1 Cheetah                    sleep_total   12.1
     ##  2 Owl monkey                 sleep_total   17.0
     ##  3 Mountain beaver            sleep_total   14.4

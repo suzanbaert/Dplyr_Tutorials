@@ -3,8 +3,10 @@
     once**](#mutating-several-columns-at-once)
     -   [**Mutate all**](#mutate-all)
     -   [**Mutate if**](#mutate-if)
-    -   [**Mutate at to change specifc
-        columns**](#mutate-at-to-change-specifc-columns)
+    -   [**Mutate at to change specific
+        columns**](#mutate-at-to-change-specific-columns)
+    -   [**Changing multiple columns
+        names**](#changing-multiple-columns-names)
 -   [**Working with discrete columns**](#working-with-discrete-columns)
     -   [**Recoding discrete columns**](#recoding-discrete-columns)
     -   [**Creating new discrete column (two
@@ -207,10 +209,10 @@ functions in part 1, there are variants to `mutate()`:
 -   `mutate_all()` will mutate all columns based on your further
     instructions
 -   `mutate_if()` first requires a function that returns a boolean to
-    select columns. If that is true, the summary instructions will be
+    select columns. If that is true, the mutate instructions will be
     followed on those variables.
 -   `mutate_at()` requires you to specify columns inside a `vars()`
-    argument for which the summary will be done.
+    argument for which the mutation will be done.
 
 ### **Mutate all**
 
@@ -239,10 +241,20 @@ Something easy to start with: turning all the data to lower case:
     ## # ... with 73 more rows, and 3 more variables: awake <chr>, brainwt <chr>,
     ## #   bodywt <chr>
 
-But I've also used it to trim whitespaces into an entire table without
-issues using: `mutate_all(str_trim)`.  
-Or when scraping the web, I've often had plenty off empty spaces and
-many `\n` signs across the data.
+The mutating action needs to be a function: in many cases you can pass
+the function name without the brackets, but in some cases you need
+arguments or you want to combine elements. In this case you have some
+options: either you make a function up front (useful if it's longer), or
+you make a function on the fly by wrapping it inside `funs()` or via a
+tilde.
+
+The below paste mutation requires a function on the fly. You can either
+use `~paste(., "  /n  ")` or `funs(paste(., "  /n  "))`. When making a
+function on the fly, you usually need a way to refer to the value you
+are replacing: which is what the `.` symbolizes.
+
+For instance, after scraping the web, you often have tables with too
+many spaces and extra `\n` signs, but you can clean it all in one go.
 
 I'm first going to use `mutate_all()` to screw things up:
 
@@ -268,8 +280,8 @@ I'm first going to use `mutate_all()` to screw things up:
 
 Let's clean it up again:  
 In this code I am assume that not all values show the same amount of
-extra white spaces as is often the case with parsed data: it frst
-removes all extra white spaces and then removes any `/n`.
+extra white spaces as is often the case with parsed data: it first
+removes any `/n`, and then trims any additional white spaces:
 
     msleep_corr <- msleep_ohno %>%
       mutate_all(~str_replace_all(., "/n", "")) %>%
@@ -290,40 +302,6 @@ removes all extra white spaces and then removes any `/n`.
     ##  8 Vesper mouse               Calomys     NA    Rodentia    
     ##  9 Dog                        Canis       carni Carnivora   
     ## 10 Roe deer                   Capreolus   herbi Artiodactyla
-    ## # ... with 73 more rows
-
-The mutating action needs to be a function: in many cases you can pass
-the function name without the brackets, but in some cases you need
-arguments, or you want to combine elements in which case you have some
-options: either you makea function upfront (useful if it's longer), or
-you make a function on the fly by wrapping it inside `funs()` or via a
-tilde.
-
-The below regex-based mutation requires a function on the fly. You can
-either use `~str_replace_all(., "[aeiou]", "")` or
-`funs(str_replace_all(., "[aeiou]", ""))`. When making a function on the
-fly, you need to refer to the value you are replacing: which is what the
-`.` refers to.
-
-The sample code will remove any vowels:
-
-    msleep %>%
-      select(name:sleep_total) %>%
-      mutate_all(~str_replace_all(., "[aeiou]", ""))
-
-    ## # A tibble: 83 x 6
-    ##    name               genus   vore  order    conservation sleep_total
-    ##    <chr>              <chr>   <chr> <chr>    <chr>        <chr>      
-    ##  1 Chth               Acnnyx  crn   Crnvr    lc           12.1       
-    ##  2 Owl mnky           Ats     mn    Prmts    <NA>         17         
-    ##  3 Mntn bvr           Apldnt  hrb   Rdnt     nt           14.4       
-    ##  4 Grtr shrt-tld shrw Blrn    mn    Srcmrph  lc           14.9       
-    ##  5 Cw                 Bs      hrb   Artdctyl dmstctd      4          
-    ##  6 Thr-td slth        Brdyps  hrb   Pls      <NA>         14.4       
-    ##  7 Nrthrn fr sl       Cllrhns crn   Crnvr    v            8.7        
-    ##  8 Vspr ms            Clmys   <NA>  Rdnt     <NA>         7          
-    ##  9 Dg                 Cns     crn   Crnvr    dmstctd      10.1       
-    ## 10 R dr               Cprls   hrb   Artdctyl lc           3          
     ## # ... with 73 more rows
 
 ### **Mutate if**
@@ -372,7 +350,7 @@ By using `mutate_if()` we need two arguments inside a pipe:
     ## 10 Roe deer                3.00     NA          NA    21.0        0  15.0 
     ## # ... with 73 more rows
 
-### **Mutate at to change specifc columns**
+### **Mutate at to change specific columns**
 
 By using `mutate_at()` we need two arguments inside a pipe:
 
@@ -410,8 +388,62 @@ changed into minutes, but `awake` did not.
     ## 10 Roe deer                           180      NA         NA    21.0 
     ## # ... with 73 more rows
 
-<br>
+### **Changing multiple columns names**
 
+With a singular `mutate()` statement, you immediately have the option to
+change the columns name. In the above example for instance it is
+confusing that the sleep columns are in a different unit, you can change
+that by calling a rename function:
+
+    msleep %>%
+      select(name, sleep_total:awake) %>%
+      mutate_at(vars(contains("sleep")), ~(.*60)) %>% 
+      rename_at(vars(contains("sleep")), ~paste0(.,"_min"))
+
+    ## # A tibble: 83 x 5
+    ##    name                sleep_total_min sleep_rem_min sleep_cycle_min awake
+    ##    <chr>                         <dbl>         <dbl>           <dbl> <dbl>
+    ##  1 Cheetah                         726          NA             NA    11.9 
+    ##  2 Owl monkey                     1020         108             NA     7.00
+    ##  3 Mountain beaver                 864         144             NA     9.60
+    ##  4 Greater short-tail~             894         138              8.00  9.10
+    ##  5 Cow                             240          42.0           40.0  20.0 
+    ##  6 Three-toed sloth                864         132             46.0   9.60
+    ##  7 Northern fur seal               522          84.0           23.0  15.3 
+    ##  8 Vesper mouse                    420          NA             NA    17.0 
+    ##  9 Dog                             606         174             20.0  13.9 
+    ## 10 Roe deer                        180          NA             NA    21.0 
+    ## # ... with 73 more rows
+
+Or as [Tomas
+McManus](https://twitter.com/TomasMcManus1/status/981187099649912832)
+pointed out: you can assign new column names inside `funs()`. In the
+main difference between both options: the `funs()` version is one line
+of code less, but columns will be added, rather than replaced. Depending
+on your scenario, both can be useful.
+
+    msleep %>%
+      select(name, sleep_total:awake) %>%
+      mutate_at(vars(contains("sleep")), funs(min = .*60))
+
+    ## # A tibble: 83 x 8
+    ##    name            sleep_total sleep_rem sleep_cycle awake sleep_total_min
+    ##    <chr>                 <dbl>     <dbl>       <dbl> <dbl>           <dbl>
+    ##  1 Cheetah               12.1     NA          NA     11.9              726
+    ##  2 Owl monkey            17.0      1.80       NA      7.00            1020
+    ##  3 Mountain beaver       14.4      2.40       NA      9.60             864
+    ##  4 Greater short-~       14.9      2.30        0.133  9.10             894
+    ##  5 Cow                    4.00     0.700       0.667 20.0              240
+    ##  6 Three-toed slo~       14.4      2.20        0.767  9.60             864
+    ##  7 Northern fur s~        8.70     1.40        0.383 15.3              522
+    ##  8 Vesper mouse           7.00    NA          NA     17.0              420
+    ##  9 Dog                   10.1      2.90        0.333 13.9              606
+    ## 10 Roe deer               3.00    NA          NA     21.0              180
+    ## # ... with 73 more rows, and 2 more variables: sleep_rem_min <dbl>,
+    ## #   sleep_cycle_min <dbl>
+
+<br>
+<hr>
 **Working with discrete columns**
 ---------------------------------
 
@@ -556,7 +588,7 @@ be used for grouping across columns:
     ## 4 other           30
 
 <br>
-
+<hr>
 **Splitting and merging columns**
 ---------------------------------
 

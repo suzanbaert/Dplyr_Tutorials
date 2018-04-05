@@ -113,7 +113,7 @@ msleep %>%
 The mutating action needs to be a function: in many cases you can pass
 the function name without the brackets, but in some cases you need
 arguments or you want to combine elements. In this case you have some
-options: either you make a function upfront (useful if it's longer), or
+options: either you make a function up front (useful if it's longer), or
 you make a function on the fly by wrapping it inside `funs()` or via a
 tilde.
 
@@ -147,20 +147,6 @@ msleep_corr[,1:4]
 
 
 
-The mutating action needs to be a function: in many cases you can pass the function name without the brackets, but in some cases you need arguments, or you want to combine elements in which case you have some options: either you makea function upfront (useful if it's longer), or you make a function on the fly by wrapping it inside `funs()` or via a tilde. 
-
-The below regex-based mutation requires a function on the fly. You can either use `~str_replace_all(., "[aeiou]", "")` or `funs(str_replace_all(., "[aeiou]", ""))`. When making a function on the fly, you need to refer to the value you are replacing: which is what the `.` refers to. 
-
-
-The sample code will remove any vowels:
-
-```{r}
-msleep %>%
-  select(name:sleep_total) %>%
-  mutate_all(~str_replace_all(., "[aeiou]", ""))
-```
-
-
 ### **Mutate if**
 
 Not all cleaning functions can be done with `mutate_all()`. Trying to round your data will lead to an error if you have both numerical and character columns. 
@@ -190,7 +176,7 @@ msleep %>%
 
 
 
-###  **Mutate at to change specifc columns**
+###  **Mutate at to change specific columns**
 
 By using `mutate_at()` we need two arguments inside a pipe:
 
@@ -206,7 +192,29 @@ msleep %>%
   select(name, sleep_total:awake) %>%
   mutate_at(vars(contains("sleep")), ~(.*60)) 
 ```
-<br>
+
+###  **Changing multiple columns names**
+
+With a singular `mutate()` statement, you immediately have the option to change the columns name. In the above example for instance it is confusing that the sleep columns are in a different unit, you can change that by calling a rename function:
+
+```{r}
+msleep %>%
+  select(name, sleep_total:awake) %>%
+  mutate_at(vars(contains("sleep")), ~(.*60)) %>% 
+  rename_at(vars(contains("sleep")), ~paste0(.,"_min"))
+```
+
+
+Or as [Tomas McManus](https://twitter.com/TomasMcManus1/status/981187099649912832) pointed out: you can assign new column names inside `funs()`. In the main difference between both options: the `funs()` version is one line of code less, but columns will be added, rather than replaced. Depending on your scenario, both can be useful.
+
+```{r}
+msleep %>%
+  select(name, sleep_total:awake) %>%
+  mutate_at(vars(contains("sleep")), funs(min = .*60))
+```
+
+
+<br><hr>
 
 
 ## **Working with discrete columns**
@@ -286,7 +294,8 @@ msleep %>%
     TRUE ~ "other")) %>%
   count(silly_groups)
 ```
-<br>
+
+<br><hr>
 
 
 
