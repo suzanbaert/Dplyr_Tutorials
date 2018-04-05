@@ -316,7 +316,8 @@ character columns.
 `Error in mutate_impl(.data, dots) : Evaluation error: non-numeric argument to mathematical function.`
 
 In these cases we have to add the condition that columns need to be
-numeric before giving `round()` instructions:
+numeric before giving `round()` instructions, which can be done with
+mutate\_if.
 
 By using `mutate_if()` we need two arguments inside a pipe:
 
@@ -417,10 +418,11 @@ that by calling a rename function:
 
 Or as [Tomas
 McManus](https://twitter.com/TomasMcManus1/status/981187099649912832)
-pointed out: you can assign new column names inside `funs()`. In the
-main difference between both options: the `funs()` version is one line
-of code less, but columns will be added, rather than replaced. Depending
-on your scenario, both can be useful.
+pointed out: you can assign a "tag" inside `funs()` which will be
+appended to the current name. The main difference between both options:
+the `funs()` version is one line of code less, but columns will be added
+rather than replaced. Depending on your scenario, either could be
+useful.
 
     msleep %>%
       select(name, sleep_total:awake) %>%
