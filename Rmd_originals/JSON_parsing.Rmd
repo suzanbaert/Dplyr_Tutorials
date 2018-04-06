@@ -1,0 +1,155 @@
+---
+title: "JSON_parsing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Introduction
+
+There are plenty of tutorials on taking JSON strings and returning R objects. I guess this is what most data scientists are doing: grabbing data from an API and analyzing in R.  
+
+For this project, I was doing the opposite: People are submitting their data, R is doing some pre-analysis wrangling and is sending it to an API.
+
+
+
+## What are JSON files?
+
+- why
+- Syntax of JSON
+
+## JSON in R
+
+```{r}
+library(jsonlite)
+library(dplyr)
+library(tidyr)
+```
+
+
+First explain prettify/minify and toJSON with pretty=TRUE
+
+
+## Basic JSON structures
+
+### Parsing basic (unnested) JSON objects
+
+When you start from an unnested list, you will parse into a JSON object:
+
+```{r}
+from_list <- list(
+  country_name = "Belgium",
+  capital = "Brussels",
+  population = 11358357)
+
+toJSON(from_list, pretty = TRUE)
+```
+
+If every element in your list has length 1, the `toJSON()` default is to place that one element in an array, which is very often what you don't want to do. In this case, the solution is to add the auto_unbox = TRUE argument, which results in a more standard `"key":"Value"` pair.
+
+```{r}
+from_list <- list(
+  country_name = "Belgium",
+  capital = "Brussels",
+  population = 11358357)
+
+toJSON(from_list, auto_unbox = TRUE, pretty = TRUE)
+```
+
+If the length of your list elements is more than 1, you end up with a JSON object that contains an array for every key.
+
+```{r}
+from_list <- list(
+  country_name = c("Belgium", "France"),
+  capital = c("Brussels", "Paris"),
+  population = c(11358357, 67201000))
+
+toJSON(from_list, pretty = TRUE)
+```
+
+
+### Parsing basic (unnested) JSON arrays
+
+What if you need a JSON array rather than an object? 
+By making an unnested dataframe rather than a list, you will get a JSON array with 1 element.
+
+```{r}
+from_df <- data.frame(
+  country_name = "Belgium",
+  capital = "Brussels",
+  population = 11358357)
+
+toJSON(from_df, pretty = TRUE)
+```
+
+
+If your dataframe contains more than one row, every row will be an element of your JSON array:
+
+```{r}
+from_df <- data.frame(
+  country_name = c("Belgium", "France"),
+  capital = c("Brussels", "Paris"),
+  population = c(11358357, 67201000))
+
+toJSON(from_df, pretty = TRUE)
+```
+
+<br><hr>
+
+In many cases the JSON structures you need are not unnest one-dimentional JSON objects or arrays. 
+
+
+```{r}
+(from_df <- data.frame(
+  country_name = c("Belgium", "Belgium", "Belgium", "France"),
+  language = c("Dutch", "French", "German", "French"),
+  language_population = c("56%", "38%", "1%", "100%"), stringsAsFactors = FALSE))
+```
+
+```{r}
+(df_nest <- nest(from_df, -country_name, .key = "official_languages"))
+```
+
+
+
+```{r}
+toJSON(df_nest, pretty = TRUE)
+```
+```
+
+
+
+## Parsing nested structures
+
+To save on space, I made a dataframe `iris_small` which only contains 2 rows per Species.
+
+
+```{r}
+iris_small <- iris %>%
+  group_by(Species) %>%
+  top_n(2, Sepal.Width)
+
+toJSON(iris_small, pretty = TRUE)
+
+
+```
+
+
+```{r}
+iris_nest <- iris_small %>%
+  tidyr::nest(-Species, .key = "measurements") 
+
+toJSON(iris_nest, pretty = TRUE)
+```
+
+
+
+
+
+
+
+#### Data sources
+
+https://nl.wikipedia.org/wiki/Talen_in_Belgi%C3%AB
