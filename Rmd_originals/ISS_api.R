@@ -14,8 +14,9 @@ query <- paste0("http://api.open-notify.org/iss-pass.json?lat=", latitude,"&lon=
 response <- GET(query)
 resp_content <- content(response)
 
-timestamp <- resp_content$response[[1]]$risetime
-as.POSIXct(timestamp, origin = "1970-01-01", tz = "CET")
+df <- do.call("rbind", resp_content$response)
+
+
 
 
 
@@ -24,4 +25,16 @@ responsepeople <- GET("http://api.open-notify.org/astros.json")
 content(responsepeople)
 toJSON(content(responsepeople), pretty = TRUE)
 
-Jan 01 1970
+
+do.call("rbind", resp_content$response)
+stack(resp_content)
+
+
+
+test <- list(
+  request = list(altitude = 100, datetime = 1523276872, lqtitude = 51.0167, longtitude = 4.3667, passses = 5),
+  response = "something")
+  
+  
+toJSON(test, pretty = TRUE)
+  

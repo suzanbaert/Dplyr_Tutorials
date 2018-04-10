@@ -9,9 +9,10 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ## Introduction
 
-There are plenty of tutorials on taking JSON strings and returning R objects. I guess this is what most data scientists are doing: grabbing data from an API and analyzing in R.  
+There are plenty of tutorials on taking JSON strings and returning R objects. I guess this is what most data analysts/scientists are doing: grabbing data from an API and analyzing in R.  
 
-For this project, I was doing the opposite: People are submitting their data, R is doing some pre-analysis wrangling and is sending it to an API.
+For a recent project, I wanted to do the opposite: **use R to upload my data to an API**. The amount of tutorials I found on that topic can be counted on one hand, and most of them did not cover more complex nested structures. So instead of learning from tutorials, I started experimenting quite a lot. I do not know whether there are any best practices on parsing to JSON from R: I think it all depends on the structure of the data you have, and the final structure required for JSON parsing. I most certainly do not have the expertise for saying what the best practices are, but I can share some of the tricks I found along the way that might aid the next person wandering into this territory.
+
 
 
 
@@ -20,32 +21,164 @@ For this project, I was doing the opposite: People are submitting their data, R 
 - why
 - Syntax of JSON
 
-## JSON in R
+
+### Viewing JSON in R
+
+```{r include= = FALSE}
+
+json_example_list <- list(type = "tutorial", topic = "json parsing", packages_used = c("jsonlite", "dplyr", "purrr", "tidyr"))
+json_example <- jsonlite::toJSON(json_example_list, auto_unbox = TRUE)
+```
+
+
+This is a json_example in its non-intended form which is not easily human readable.
+```{r}
+json_example
+```
+
+To show it in its more-readable indented form you can use `jsonlite::prettify()`
+
+```{r}
+prettify(json_example)
+```
+
+Similarly, when parsing an R object to JSON with the `jsonlite::toJSON()` function, by defaultyou get the non-indented form, but by adding the argument `pretty = TRUE` (as will be done throughout this tutorial) it will print its indented form.
+
+
+
+
+### Note about sending to an API
+
+Add here that by itself it will already be parsed in the post function. however to control its json structure, it's good to experiment parsing upfront already. If you want to send already parsed data you have to add that one argument.
+
+learning in POST requests
+then adding no json parsing
+
+
+<br><hr>
+
+
+
+## Tutorial set-up
+
+Packages we will need: dplyr for data wrangling, and jsonlite to parse data to JSON.
 
 ```{r}
 library(jsonlite)
 library(dplyr)
-library(tidyr)
 ```
 
 
-First explain prettify/minify and toJSON with pretty=TRUE
+To make it easy, I want to use a dataset most people will have available on their pc. We're going to pretend that we have a database with animals and their sleep time, and we recently gathered two more data points (a cat and a rabbit) that we want to upload to the database. I also made a selection of columns (6 rather than all 11) to save some space.
+
+```{r}
+msleep <- ggplot2::msleep
+cat_rabbit <- msleep$name %in% c("Rabbit", "Domestic cat")
+columns <- c(1:3, 6, 10:11)
+new_data <- msleep[cat_rabbit, columns]
+new_data
+```
 
 
-## Basic JSON structures
 
-### Parsing basic (unnested) JSON objects
+
+
+
+<br><hr>
+
+## Basic unnested JSON structures
+
+You might get lucky: the easiest case is that you can bulk add all your observations, and that the required json string is an unnested array of objects. In this case, you can just parse all your data to JSON and you're done.
+
+```{r}
+toJSON(new_data, pretty = TRUE)
+```
+
+
+If bulk uploading is not available and you need to submit row by row, it depends whether the api will ask for a JSON array or JSON object. If it's a JSON array, you can send the data row by row, and build a function around the below JSON call.
+
+```{r}
+toJSON(new_data[1, ], pretty = TRUE)
+```
+
+
+If it needs to be JSON object, you need to first get to a list. If you do not have many elements you could simply build a list manually and refer to each element in the datatable, but with many columns that's a lot of manual labour. There are two others ways: iterate over every row of your data and call `as.list` on that row:   
+
+```{r}
+toJSON(as.list(new_data[1, ]), auto_unbox = TRUE, pretty = TRUE)
+```
+
+or first tranpose your entire datatable to an inside-out-list, and send each element of the list seperately. 
+
+```{r}
+transposed_data <- purrr::transpose(new_data)
+toJSON(transposed_data[[1]], auto_unbox = TRUE, pretty = TRUE)
+```
+
+
+The difference between a straight `as.list()` call and an inside-out `transpose()` list call can best be shown with an example. Below you can see that `as.list()` will structure the list by column, while `transpose()` lists by row. As you can imagine, both cases would result in very different JSON structures.
+
+```{r}
+as.list(new_data)
+```
+
+
+```{r}
+purrr::transpose(new_data)
+```
+
+
+
+<br><hr>
+
+
+## Nested JSON structures
+
+When it comes to nested structures, it depends on the api structure and the data you already have. In some cases you might want to start from your data frame and embed it into a list, or nest parts of it. 
+
+
+
+#### Embed your data inside a list
+
+Imagine your dataframe already covers a part of the required json string, but it needs some additional info. One way is to embed your data inside a list. You can embed one or more dataframes, and those can be identified upfront or inline.
+
+
+```{r}
+r_object <- list(measurement_date = Sys.Date(),
+                 measurement_place = "Belgium",
+                 data = new_data)
+
+toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
+```
+
+
+Below is an example of two embedded dataframes, one of which is made at the time of the list call. 
+
+```{r}
+r_object <- list(submission_date = Sys.Date(),
+                 measurement_info = data.frame(date = "2018-04-09", place = "Belgium"),
+                 data = new_data)
+
+toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
+```
+
+Those are still somewhat optimistic cases though. You might have to provide the meta info per observation rather than for the bulk
+
+
+```{r}
+r_object <- 
+
+```
+
+
+
+
+---
+
+### Parsing unnest JSON object
 
 When you start from an unnested list, you will parse into a JSON object:
 
-```{r}
-from_list <- list(
-  country_name = "Belgium",
-  capital = "Brussels",
-  population = 11358357)
-
-toJSON(from_list, pretty = TRUE)
-```
 
 If every element in your list has length 1, the `toJSON()` default is to place that one element in an array, which is very often what you don't want to do. In this case, the solution is to add the auto_unbox = TRUE argument, which results in a more standard `"key":"Value"` pair.
 
