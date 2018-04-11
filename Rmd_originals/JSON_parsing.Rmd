@@ -5,6 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(jsonlite)
 ```
 
 ## Introduction
@@ -22,9 +23,52 @@ For a recent project, I wanted to do the opposite: **use R to upload my data to 
 - Syntax of JSON
 
 
+### Basic JSON parsing
+
+There will be plenty of examples belowm, but in general it boils down to this:
+
++ You obtain a JSON object by parsing a list
++ You obtain a JSON array by parsing a dataframe (or by a list of a list)
++ By nesting dataframes/lists inside lists/dataframes you can get the required nested JSON structures. In many cases you can get there starting from a list or a dataframe, so you can pick the easiest option depending on the shape of your data to start with.
+
+
+
+A standard list will return a JSON object:
+
+
+```{r}
+r_object <- list(key1 = "value1", 
+                 key2 = "value2")
+
+toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
+```
+
+
+
+A standard dataframe will return a JSON array:
+
+```{r}
+r_object <- data.frame(key1 = "value1", 
+                       key2 = "value2")
+
+toJSON(r_object, pretty = TRUE)
+```
+
+The same JSON array can be obtained by wrapping your list inside a lists:
+
+```{r}
+r_object <- list(
+                list(key1 = "value1",
+                     key2 = "value2"))
+toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
+```
+
+
+
+
 ### Viewing JSON in R
 
-```{r include= = FALSE}
+```{r include= FALSE}
 
 json_example_list <- list(type = "tutorial", topic = "json parsing", packages_used = c("jsonlite", "dplyr", "purrr", "tidyr"))
 json_example <- jsonlite::toJSON(json_example_list, auto_unbox = TRUE)
@@ -42,7 +86,7 @@ To show it in its more-readable indented form you can use `jsonlite::prettify()`
 prettify(json_example)
 ```
 
-Similarly, when parsing an R object to JSON with the `jsonlite::toJSON()` function, by defaultyou get the non-indented form, but by adding the argument `pretty = TRUE` (as will be done throughout this tutorial) it will print its indented form.
+Similarly, when parsing an R object to JSON with the `jsonlite::toJSON()` function, by default you get the non-indented form, but by adding the argument `pretty = TRUE` (as will be done throughout this tutorial) it will print its indented form. 
 
 
 
@@ -102,13 +146,18 @@ toJSON(new_data[1, ], pretty = TRUE)
 ```
 
 
-If it needs to be JSON object, you need to first get to a list. If you do not have many elements you could simply build a list manually and refer to each element in the datatable, but with many columns that's a lot of manual labour. There are two others ways: iterate over every row of your data and call `as.list` on that row:   
+If it needs to be JSON object, you need to first get to a list. If you do not have many elements you could simply build a list manually and refer to each element in the datatable, but with many columns that's a lot of manual labour.  
+
+There are two others ways: 
+1. Iterate over every row of your data and call `as.list` on that row:  
+
 
 ```{r}
 toJSON(as.list(new_data[1, ]), auto_unbox = TRUE, pretty = TRUE)
 ```
 
-or first tranpose your entire datatable to an inside-out-list, and send each element of the list seperately. 
+or 2. First tranpose your entire datatable to an inside-out-list, and send each element of the list seperately. 
+In both of these case I also added the `auto_unbox = TRUE` argument to overwrite toJSONs default behaviour to turn list elements of 1 into an array of length 1.
 
 ```{r}
 transposed_data <- purrr::transpose(new_data)
@@ -138,9 +187,9 @@ When it comes to nested structures, it depends on the api structure and the data
 
 
 
-#### Embed your data inside a list
+### Embed your data inside a list
 
-Imagine your dataframe already covers a part of the required json string, but it needs some additional info. One way is to embed your data inside a list. You can embed one or more dataframes, and those can be identified upfront or inline.
+Imagine your dataframe already covers the nested part of the required json string, but it needs some additional info one level up. One way is to embed your data inside a list. You can embed one or more dataframes, and those can be identified upfront or assembled on the spot.
 
 
 ```{r}
@@ -152,7 +201,7 @@ toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
 ```
 
 
-Below is an example of two embedded dataframes, one of which is made at the time of the list call. 
+Below is an example of two embedded dataframes, one of which is made at the time of the list call. Both dataframes will be converted to nested JSON arrays.
 
 ```{r}
 r_object <- list(submission_date = Sys.Date(),
@@ -162,13 +211,25 @@ r_object <- list(submission_date = Sys.Date(),
 toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
 ```
 
-Those are still somewhat optimistic cases though. You might have to provide the meta info per observation rather than for the bulk
+
+If you need one nested JSON object instead of an array, you need to turn it into a list. You can do this on the spot (as shown below), or turn the data into the right list upfront using `as.list()` or `transpose()` as shown above.
 
 
 ```{r}
-r_object <- 
+r_object <- list(submission_date = Sys.Date(),
+                 measurement_info = list(date = "2018-04-09", place = "Belgium"),
+                 data = new_data)
+
+toJSON(r_object, auto_unbox = TRUE, pretty = TRUE)
 
 ```
+
+
+
+<br><hr>
+
+### Nested dataframes
+
 
 
 
@@ -242,7 +303,7 @@ In many cases the JSON structures you need are not unnest one-dimentional JSON o
 ```
 
 ```{r}
-(df_nest <- nest(from_df, -country_name, .key = "official_languages"))
+(df_nest <- tidyr::nest(from_df, -country_name, .key = "official_languages"))
 ```
 
 
