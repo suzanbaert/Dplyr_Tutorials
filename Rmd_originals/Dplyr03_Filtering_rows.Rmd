@@ -201,7 +201,7 @@ In these cases, there is a general syntax: first you specify which columns, then
 Admittedly, `msleep` is not the best database to showcase this power, but imagine you have a database with a few columns and you want to select all rows that have a certain word in either column. Take a financial dataframe for instance and you want to select all rows with 'food', whether food is mentioned in the main category column, the subcategory column, the comments column or the place you've spent it.  
 You could make a long filter statement with 4 different conditions wrapped inside OR statements. Or you just filter across all columns for the string "food".  
 
-In the sample code below I'm searching for the string "Ca" across all columns. I want to keep rows where the string "Ca" is present in ANY of the variables, so I will wrqp the condition in `any_vars()`.  
+In the sample code below I'm searching for the string "Ca" across all columns. I want to keep rows where the string "Ca" is present in ANY of the variables, so I will wrap the condition in `any_vars()`.  
 The below code basically asks to retain any rows where any of the variables has the pattern "Ca" inside.
 
 
