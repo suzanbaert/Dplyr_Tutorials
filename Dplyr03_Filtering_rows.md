@@ -240,7 +240,7 @@ filter option allows also AND and OR style filters:
 -   `filter(xor(condition1, condition2)` will return all rows where only
     one of the conditions is met, and not when both conditions are met.
 
-Multipe AND, OR and NOT conditions can be combined. The sample code will
+Multiple AND, OR and NOT conditions can be combined. The sample code will
 return all rows with a bodywt above 100 and either have a sleep\_total
 above 15 or are not part of the Carnivora order.
 
