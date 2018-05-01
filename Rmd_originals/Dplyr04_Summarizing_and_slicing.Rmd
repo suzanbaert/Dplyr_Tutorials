@@ -165,7 +165,7 @@ msleep %>%
 ```
 
 
-The instructions for summarizing have to be a function. When there is no funcion availble in base R or a package to do what you want, you can either make a function upfront, or make a function on the fly. 
+The instructions for summarizing have to be a function. When there is no function available in base R or a package to do what you want, you can either make a function upfront, or make a function on the fly. 
 The sample code will add 5 to the mean of each column. The function on the fly can be made by either using `funs(mean(., na.rm = TRUE) + 5)`, or via a tilde: `~mean(., na.rm = TRUE) + 5`.
 
 
@@ -275,7 +275,7 @@ In some cases, you don't just want to show all rows available. Here are some nic
 
 ### The 5 lowest and highest values
 
-In some cases, you don't just want to show all rows available. You can filter of course, but there are some shortcuts for specific needs: if you want to select the highests 5 cases, you could combine an `arrange` call with a `head(n=5)`. Or you can use `top_n(5)` which will retain (unsorted) the 5 highest values.
+In some cases, you don't just want to show all rows available. You can filter of course, but there are some shortcuts for specific needs: if you want to select the highest 5 cases, you could combine an `arrange` call with a `head(n=5)`. Or you can use `top_n(5)` which will retain (unsorted) the 5 highest values.
 
 ```{r}
 msleep %>% 
