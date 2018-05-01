@@ -228,7 +228,7 @@ interested, the alternative would be:
 
 ### **Filtering based on multiple conditions**
 
-All the above just returns rows based on a single condition, but the
+The above examples return rows based on a single condition, but the
 filter option allows also AND and OR style filters:
 
 -   `filter(condition1, condition2)` will return rows where both
@@ -430,7 +430,7 @@ measurement section.
 In this case: `filter_if()` comes in handy. The describing columns are
 all character columns, while the measurement data is numeric. So using
 `filter_if()` I can specify that I want to just filter on character
-variables. In this case I onnly get 7 rows.
+variables. In this case I only get 7 rows.
 
     msleep %>% 
       select(name:order, sleep_total:sleep_rem) %>% 
