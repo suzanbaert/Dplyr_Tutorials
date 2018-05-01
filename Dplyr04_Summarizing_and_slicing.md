@@ -29,7 +29,7 @@ Content:
 
 Note: as per previous blog posts, I will present everything in the form
 of a pipe. In some of the below cases, this might not be necessary and
-it would be just as easy to write it as a single function, but as I want
+it would be just as easy to write it on a single line, but as I want
 to present options that you can use in your pipes, all below examples
 will be piped.
 
@@ -268,8 +268,7 @@ columns in one go:
 ### **Summarise all**
 
 The function `summarise_all()` requires a function as argument, which it
-will apply to all columns. The sample code first selects all numeric
-columns, and then calculates the mean for each of them. I had to add the
+will apply to all columns. The sample code calculates the mean for each column. I had to add the
 `na.rm = TRUE` argument to ignore `NA` values.
 
     msleep %>%
