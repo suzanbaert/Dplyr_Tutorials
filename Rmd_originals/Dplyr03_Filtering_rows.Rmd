@@ -132,7 +132,7 @@ msleep %>%
 
 ### **Filtering based on multiple conditions**
 
-All the above just returns rows based on a single condition, but the filter option allows also AND and OR style filters:  
+The above examples return rows based on a single condition, but the filter option allows also AND and OR style filters:  
 
 + `filter(condition1, condition2)` will return rows where both conditions are met.  
 + `filter(condition1, !condition2)` will return all rows where condition one is true but condition 2 is not.  
@@ -140,7 +140,7 @@ All the above just returns rows based on a single condition, but the filter opti
 + `filter(xor(condition1, condition2)` will return all rows where only one of the conditions is met, and not when both conditions are met.  
 
   
-Multipe AND, OR and NOT conditions can be combined. The sample code will return all rows with a bodywt above 100 and either have a sleep_total above 15 or are not part of the Carnivora order.
+Multiple AND, OR and NOT conditions can be combined. The sample code will return all rows with a bodywt above 100 and either have a sleep_total above 15 or are not part of the Carnivora order.
 
 ```{r}
 msleep %>% 
@@ -201,7 +201,7 @@ In these cases, there is a general syntax: first you specify which columns, then
 Admittedly, `msleep` is not the best database to showcase this power, but imagine you have a database with a few columns and you want to select all rows that have a certain word in either column. Take a financial dataframe for instance and you want to select all rows with 'food', whether food is mentioned in the main category column, the subcategory column, the comments column or the place you've spent it.  
 You could make a long filter statement with 4 different conditions wrapped inside OR statements. Or you just filter across all columns for the string "food".  
 
-In the sample code below I'm searching for the string "Ca" across all columns. I want to keep rows where the string "Ca" is present in ANY of the variables, so I will wrqp the condition in `any_vars()`.  
+In the sample code below I'm searching for the string "Ca" across all columns. I want to keep rows where the string "Ca" is present in ANY of the variables, so I will wrap the condition in `any_vars()`.  
 The below code basically asks to retain any rows where any of the variables has the pattern "Ca" inside.
 
 
@@ -240,7 +240,7 @@ msleep %>%
 The `filter_all()` function can sometimes go a bit wild. The `msleep` dataset has a set of sleep and weight measurements where some data is missing - there is nothing I can do to add data there. But the first few set of columns just contain info on animals. The vore of Vesper Mouse is missing, but that is info I can still dig up and add to the dataframe if I wanted.  
 So imagine I want to find out all data rows where we NA in the first few columns. `filter_all(any_vars(is.na(.)))` will be quite useless because it would return 27 rows, many of which are missing data in the measurement section.  
 
-In this case: `filter_if()` comes in handy. The describing columns are all character columns, while the measurement data is numeric. So using `filter_if()` I can specify that I want to just filter on character variables. In this case I onnly get 7 rows.
+In this case: `filter_if()` comes in handy. The describing columns are all character columns, while the measurement data is numeric. So using `filter_if()` I can specify that I want to just filter on character variables. In this case I only get 7 rows.
 
 
 ```{r}
