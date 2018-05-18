@@ -142,10 +142,10 @@ use the `==` comparison operator:
     ## 1 Didelphimorphia North American Opossum        18.0
     ## 2 Didelphimorphia Thick-tailed opposum          19.4
 
-Simarly you can use the other operators:  
-`filter(order != "Rodentia")` will select everything except the Rodentia
+Similarly you can use the other operators:  
+- `filter(order != "Rodentia")` will select everything except the Rodentia
 rows.  
-`filter(name > "v")` will just select the rows with a name in the
+- `filter(name > "v")` will just select the rows with a name in the
 alphabet after the letter v.
 
 If you want to select more than one animal you can use the `%in%`
@@ -229,7 +229,7 @@ interested, the alternative would be:
 ### **Filtering based on multiple conditions**
 
 The above examples return rows based on a single condition, but the
-filter option allows also AND and OR style filters:
+filter option also allows AND and OR style filters:
 
 -   `filter(condition1, condition2)` will return rows where both
     conditions are met.  
