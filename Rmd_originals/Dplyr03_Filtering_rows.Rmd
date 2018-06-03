@@ -88,8 +88,9 @@ msleep %>%
 ```
 
 Simarly you can use the other operators:  
-`filter(order != "Rodentia")` will select everything except the Rodentia rows.  
-`filter(name > "v")` will just select the rows with a name in the alphabet after the letter v.  
+
++ `filter(order != "Rodentia")` will select everything except the Rodentia rows.  
++ `filter(name > "v")` will just select the rows with a name in the alphabet after the letter v.  
   
 If you want to select more than one animal you can use the `%in%` operator. The following code will just select the rows with animals belonging to the order of Didelphimorphia and Diprotodontia.  
 
