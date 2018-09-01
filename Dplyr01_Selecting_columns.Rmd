@@ -66,20 +66,7 @@ msleep %>%
   select(-(name:awake), conservation) %>%
   glimpse
 ```
-<br>
-
-There is another option which avoids the continuous retyping of columns names: `one_of()`. You can set up column names upfront, and then refer to them inside a `select()` statement.
-
-```{r}
-classification_info <- c("name", "genus", "vore", "order", "conservation")
-sleep_cols <- c("sleep_total", "sleep_rem", "sleep_cycle")
-weight_cols <- c("brainwt", "bodywt")
-
-msleep %>%
-  select(one_of(sleep_cols))
-```
-
-`
+<br><br>
 
 
 
@@ -116,6 +103,22 @@ msleep %>%
   glimpse
 ```
 <br><br>
+
+
+
+## **Selecting columns based pre-identified columns**
+
+There is another option which avoids the continuous retyping of columns names: `one_of()`. You can set up column names upfront, and then refer to them inside a `select()` statement by either wrapping them inside `one_of()` or by using the `!!` operator.
+
+```{r}
+classification <- c("name", "genus", "vore", "order", "conservation")
+
+
+msleep %>%
+  select(!!classification)
+```
+
+`
 
 
 

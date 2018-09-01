@@ -1,15 +1,3 @@
-# 1. Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
-
-I went through the entire dplyr documentation for a talk last week about
-pipes, which resulted in a few "aha!" moments. I discovered and
-re-discovered a few useful functions, which I wanted to collect in a few
-blog posts so I can share them with others.  
-This first post will cover ordering, naming and selecting columns. The
-next post will be about recoding and transforming columns, and after
-that I will move on to row selection. I changed dataset versus the talk
-last week to one that is built-in to R so code can be copy pasted and
-experimented with easily.  
-
 -   [**Selecting columns**](#selecting-columns)
     -   [**Selecting columns: the
         basics**](#selecting-columns-the-basics)
@@ -17,6 +5,8 @@ experimented with easily.
         names**](#selecting-columns-based-on-partial-column-names)
     -   [**Selecting columns based on
         regex**](#selecting-columns-based-on-regex)
+    -   [**Selecting columns based pre-identified
+        columns**](#selecting-columns-based-pre-identified-columns)
     -   [**Selecting columns by their data
         type**](#selecting-columns-by-their-data-type)
     -   [**Selecting columns by logical
@@ -27,9 +17,19 @@ experimented with easily.
     -   [**Reformatting all column
         names**](#reformatting-all-column-names)
     -   [**Row names to column**](#row-names-to-column)
-<br> 
 
-All code will be presented as part of pipe even though hardly any
+Data Wrangling Part 1: Basic to Advanced Ways to Select Columns
+
+I went through the entire dplyr documentation for a talk last week about
+pipes, which resulted in a few "aha!" moments. I discovered and
+re-discovered a few useful functions, which I wanted to collect in a few
+blog posts so I can share them with others.  
+This first post will cover ordering, naming and selecting columns. The
+next post will be about recoding and transforming columns, and after
+that I will move on to row selection. I changed dataset versus the talk
+last week to one that is built-in to R so code can be copy pasted and
+experimented with easily.  
+<br> All code will be presented as part of pipe even though hardly any
 of them are a full pipe. I did add `glimpse()` statement to allow you to
 see the columns selected in the output tibble without printing all the
 data every time.
@@ -139,35 +139,7 @@ This only works if you re-add it in the same `select()` statement.
     ## $ bodywt       <dbl> 50.000, 0.480, 1.350, 0.019, 600.000, 3.850, 20.4...
     ## $ conservation <chr> "lc", NA, "nt", "lc", "domesticated", NA, "vu", N...
 
-<br>
-
-There is another option which avoids the continuous retyping of columns
-names: `one_of()`. You can set up column names upfront, and then refer
-to them inside a `select()` statement.
-
-    classification_info <- c("name", "genus", "vore", "order", "conservation")
-    sleep_cols <- c("sleep_total", "sleep_rem", "sleep_cycle")
-    weight_cols <- c("brainwt", "bodywt")
-
-    msleep %>%
-      select(one_of(sleep_cols))
-
-    ## # A tibble: 83 x 3
-    ##    sleep_total sleep_rem sleep_cycle
-    ##          <dbl>     <dbl>       <dbl>
-    ##  1       12.1     NA          NA    
-    ##  2       17.0      1.80       NA    
-    ##  3       14.4      2.40       NA    
-    ##  4       14.9      2.30        0.133
-    ##  5        4.00     0.700       0.667
-    ##  6       14.4      2.20        0.767
-    ##  7        8.70     1.40        0.383
-    ##  8        7.00    NA          NA    
-    ##  9       10.1      2.90        0.333
-    ## 10        3.00    NA          NA    
-    ## # ... with 73 more rows
-
-\`
+<br><br>
 
 **Selecting columns based on partial column names**
 ---------------------------------------------------
@@ -223,6 +195,37 @@ followed by one or more other letters, and "er".
 
 <br><br>
 
+**Selecting columns based pre-identified columns**
+--------------------------------------------------
+
+There is another option which avoids the continuous retyping of columns
+names: `one_of()`. You can set up column names upfront, and then refer
+to them inside a `select()` statement by either wrapping them inside
+`one_of()` or by using the `!!` operator.
+
+    classification <- c("name", "genus", "vore", "order", "conservation")
+
+
+    msleep %>%
+      select(!!classification)
+
+    ## # A tibble: 83 x 5
+    ##    name                       genus       vore  order        conservation
+    ##    <chr>                      <chr>       <chr> <chr>        <chr>       
+    ##  1 Cheetah                    Acinonyx    carni Carnivora    lc          
+    ##  2 Owl monkey                 Aotus       omni  Primates     <NA>        
+    ##  3 Mountain beaver            Aplodontia  herbi Rodentia     nt          
+    ##  4 Greater short-tailed shrew Blarina     omni  Soricomorpha lc          
+    ##  5 Cow                        Bos         herbi Artiodactyla domesticated
+    ##  6 Three-toed sloth           Bradypus    herbi Pilosa       <NA>        
+    ##  7 Northern fur seal          Callorhinus carni Carnivora    vu          
+    ##  8 Vesper mouse               Calomys     <NA>  Rodentia     <NA>        
+    ##  9 Dog                        Canis       carni Carnivora    domesticated
+    ## 10 Roe deer                   Capreolus   herbi Artiodactyla lc          
+    ## # ... with 73 more rows
+
+\`
+
 **Selecting columns by their data type**
 ----------------------------------------
 
@@ -230,7 +233,7 @@ The `select_if` function allows you to pass functions which return
 logical statements. For instance you can select all the string columns
 by using `select_if(is.character)`. Similarly, you can add `is.numeric`,
 `is.integer`, `is.double`, `is.logical`, `is.factor`.  
-If you have date columns, you can load the `lubridate` package, and use
+If you have data columns, you can load the `lubridate` package, and use
 `is.POSIXt` or `is.Date`.
 
     msleep %>%
@@ -286,18 +289,18 @@ add a tilde upfront to turn the statement into a function.
       select_if(~is.numeric(.) & mean(., na.rm=TRUE) > 10)
 
     ## # A tibble: 83 x 3
-    ##    sleep_total awake   bodywt
-    ##          <dbl> <dbl>    <dbl>
-    ##  1       12.1  11.9   50.0   
-    ##  2       17.0   7.00   0.480 
-    ##  3       14.4   9.60   1.35  
-    ##  4       14.9   9.10   0.0190
-    ##  5        4.00 20.0  600     
-    ##  6       14.4   9.60   3.85  
-    ##  7        8.70 15.3   20.5   
-    ##  8        7.00 17.0    0.0450
-    ##  9       10.1  13.9   14.0   
-    ## 10        3.00 21.0   14.8   
+    ##    sleep_total awake  bodywt
+    ##          <dbl> <dbl>   <dbl>
+    ##  1        12.1  11.9  50    
+    ##  2        17     7     0.48 
+    ##  3        14.4   9.6   1.35 
+    ##  4        14.9   9.1   0.019
+    ##  5         4    20   600    
+    ##  6        14.4   9.6   3.85 
+    ##  7         8.7  15.3  20.5  
+    ##  8         7    17     0.045
+    ##  9        10.1  13.9  14    
+    ## 10         3    21    14.8  
     ## # ... with 73 more rows
 
 <br>
@@ -434,19 +437,20 @@ you could use `tolower()`.
       select_all(toupper)
 
     ## # A tibble: 83 x 11
-    ##    NAME     GENUS  VORE  ORDER  CONSE~ SLEEP~ SLEEP~ SLEEP~ AWAKE  BRAINWT
-    ##    <chr>    <chr>  <chr> <chr>  <chr>   <dbl>  <dbl>  <dbl> <dbl>    <dbl>
-    ##  1 Cheetah  Acino~ carni Carni~ lc      12.1  NA     NA     11.9  NA      
-    ##  2 Owl mon~ Aotus  omni  Prima~ <NA>    17.0   1.80  NA      7.00  1.55e-2
-    ##  3 Mountai~ Aplod~ herbi Roden~ nt      14.4   2.40  NA      9.60 NA      
-    ##  4 Greater~ Blari~ omni  Soric~ lc      14.9   2.30   0.133  9.10  2.90e-4
-    ##  5 Cow      Bos    herbi Artio~ domes~   4.00  0.700  0.667 20.0   4.23e-1
-    ##  6 Three-t~ Brady~ herbi Pilosa <NA>    14.4   2.20   0.767  9.60 NA      
-    ##  7 Norther~ Callo~ carni Carni~ vu       8.70  1.40   0.383 15.3  NA      
-    ##  8 Vesper ~ Calom~ <NA>  Roden~ <NA>     7.00 NA     NA     17.0  NA      
-    ##  9 Dog      Canis  carni Carni~ domes~  10.1   2.90   0.333 13.9   7.00e-2
-    ## 10 Roe deer Capre~ herbi Artio~ lc       3.00 NA     NA     21.0   9.82e-2
-    ## # ... with 73 more rows, and 1 more variable: BODYWT <dbl>
+    ##    NAME   GENUS VORE  ORDER CONSERVATION SLEEP_TOTAL SLEEP_REM SLEEP_CYCLE
+    ##    <chr>  <chr> <chr> <chr> <chr>              <dbl>     <dbl>       <dbl>
+    ##  1 Cheet~ Acin~ carni Carn~ lc                  12.1      NA        NA    
+    ##  2 Owl m~ Aotus omni  Prim~ <NA>                17         1.8      NA    
+    ##  3 Mount~ Aplo~ herbi Rode~ nt                  14.4       2.4      NA    
+    ##  4 Great~ Blar~ omni  Sori~ lc                  14.9       2.3       0.133
+    ##  5 Cow    Bos   herbi Arti~ domesticated         4         0.7       0.667
+    ##  6 Three~ Brad~ herbi Pilo~ <NA>                14.4       2.2       0.767
+    ##  7 North~ Call~ carni Carn~ vu                   8.7       1.4       0.383
+    ##  8 Vespe~ Calo~ <NA>  Rode~ <NA>                 7        NA        NA    
+    ##  9 Dog    Canis carni Carn~ domesticated        10.1       2.9       0.333
+    ## 10 Roe d~ Capr~ herbi Arti~ lc                   3        NA        NA    
+    ## # ... with 73 more rows, and 3 more variables: AWAKE <dbl>, BRAINWT <dbl>,
+    ## #   BODYWT <dbl>
 
 <br>
 
@@ -464,16 +468,16 @@ all white spaces with an underscore.
     ## # A tibble: 83 x 3
     ##    name                       sleep_total brain_weight
     ##    <chr>                            <dbl>        <dbl>
-    ##  1 Cheetah                          12.1     NA       
-    ##  2 Owl monkey                       17.0      0.0155  
-    ##  3 Mountain beaver                  14.4     NA       
-    ##  4 Greater short-tailed shrew       14.9      0.000290
-    ##  5 Cow                               4.00     0.423   
-    ##  6 Three-toed sloth                 14.4     NA       
-    ##  7 Northern fur seal                 8.70    NA       
-    ##  8 Vesper mouse                      7.00    NA       
-    ##  9 Dog                              10.1      0.0700  
-    ## 10 Roe deer                          3.00     0.0982  
+    ##  1 Cheetah                           12.1     NA      
+    ##  2 Owl monkey                        17        0.0155 
+    ##  3 Mountain beaver                   14.4     NA      
+    ##  4 Greater short-tailed shrew        14.9      0.00029
+    ##  5 Cow                                4        0.423  
+    ##  6 Three-toed sloth                  14.4     NA      
+    ##  7 Northern fur seal                  8.7     NA      
+    ##  8 Vesper mouse                       7       NA      
+    ##  9 Dog                               10.1      0.07   
+    ## 10 Roe deer                           3        0.0982 
     ## # ... with 73 more rows
 
 <br><br>
